@@ -1,0 +1,35 @@
+<!--Main Navigation-->
+<nav class="bg-gray-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <icon src="logo.svg" class="w-10 h-10"></icon>
+          </div>
+          <div class="md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+                <span class="text-white px-3 py-2 text-sm font-medium">Light Saber Lamp - Compagnion app</span>
+            </div>
+          </div>
+        </div>
+        <div class="md:block">
+          <div class="flex items-center">
+            <div x-data class="ml-4 flex items-center md:ml-6">
+                <span @click="$store.websocket.init()" class="rounded-full bg-gray-800 p-1 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                    :class="[$store.websocket.state === true ? 'text-green-400' : 'text-red-400']">
+                    <span class="sr-only">Websocket status</span>
+                    <icon src="icons/websocket.svg" class="w-6 h-6"></icon>
+                </span>
+            </div>
+            <div class="ml-4 flex items-center md:ml-6">
+                <span @click="$store.settings.open = true" class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                    <span class="sr-only">Configuration</span>
+                    <icon src="icons/settings.svg" class="w-6 h-6"></icon>
+                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</nav>
+<!--Main Navigation-->

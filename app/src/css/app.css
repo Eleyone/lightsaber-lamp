@@ -1,0 +1,20 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Slider */
+.x-slider input::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #636363;
+    border: 5px solid #24c55d;
+    box-shadow: 0px 0px 40px -4px rgba(0, 0, 0, 0.76);
+    transition: all 0.1s ease-in-out;
+    outline: none;
+    appearance: none;
+}
+
+.x-slider input::-webkit-slider-thumb:hover {
+    border-color: #1bb350;
+}
