@@ -1,0 +1,57 @@
+{
+  "name": "light-saber_lamp_control_panel",
+  "version": "1.0.0",
+  "description": "App to be able to control the LightSaber lamp",
+  "scripts": {
+    "start": "parcel --dist-dir build src/html/*.html",
+    "build": "parcel build src/html/*.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "parcel": "^2.9.3",
+    "parcel-namer-rewrite": "^2.0.0-rc.3",
+    "parcel-transformer-google-fonts": "^0.1.4",
+    "postcss": "^8.4.26",
+    "posthtml-include": "^1.7.4",
+    "posthtml-inline-svg": "^0.2.0",
+    "tailwindcss": "^3.3.3"
+  },
+  "dependencies": {
+    "alpinejs": "^3.12.3",
+    "alpinejs-form-data": "^1.0.3"
+  },
+  "parcel-namer-rewrite": {
+    "hashing": "always",
+    "disable": false,
+    "rules": {
+      "(.*).css": "app.css",
+      "(.*).js": "app.js",
+      "(.*).ico": "$1.ico"
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {}
+    }
+  },
+  "posthtml": {
+    "plugins": {
+      "posthtml-include": {
+          "root": "./src/html"
+      },
+      "posthtml-inline-svg": {
+          "cwd": "./src/img"
+      }
+    }
+  },
+  "parcel": {
+    "transforms": {
+      "*.html": [
+        "parcel-transformer-google-fonts"
+      ]
+    }
+  }
+}

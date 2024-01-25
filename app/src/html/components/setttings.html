@@ -1,0 +1,120 @@
+<div class="absolute top-0 left-0 w-full h-full flex items-center justify-center z-40" style="background-color: rgba(0,0,0,.5);" x-show="$store.settings.open">
+    <div class="rounded">
+        <div class="bg-gray-800 text-white p-4 shadow-xl text-center rounded-t flex items-center justify-between">
+            <h2 class="text-2xl">Settings</h2>
+            <icon src="icons/close.svg" class="w-6 h-6"></icon>
+        </div>
+        <div class="bg-white h-auto p-4 shadow-xl text-center rounded-b" @click.away="$store.settings.toggle()">
+            <form x-data x-on:submit.prevent="$store.endpoints.saveWifiConfig($formData)" class="novalidate group">
+                <div class="mt-2">
+                    <p class="mt-1 text-xl leading-6 text-gray-600 border-b border-gray-900/10 pb-2">WiFi configuration</p>
+                    <div class="mt-2 grid grid-cols-1 gap-x-1 gap-y-1">
+                        <div class="col-span-full">
+                            <label for="ssid" class="block text-sm font-medium leading-6 text-gray-900">WiFi Network SSID:</label>
+                            <div class="mt-2">
+                                <input type="text"id="ssid" name="ssid" placeholder="" required pattern="[^&quot;\t\s!#;+\]\/][^&quot;\t\s+\]\/]{0,31}"
+                                class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500 peer"
+                                />
+                                <span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                                    Please enter a valid SSID
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="pwd" class="block text-sm font-medium leading-6 text-gray-900">WiFi Network Password:</label>
+                            <div class="mt-2 relative flex items-center" x-data="{ show: false }" x-clock>
+                                <input :type="(show) ? 'text' : 'password'" id="pwd" name="pwd" placeholder="" class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                                <span class="absolute right-2 bg-transparent flex items-center justify-center hover:text-blue-600" @click="show = !show">
+                                    <icon src="icons/showpass.svg"  x-show="!show" class="w-5 h-5"></icon>
+                                    <icon src="icons/hidepass.svg" x-show="show" class="w-5 h-5" style="display: none;"></icon>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <span class="bg-gray-700 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none" 
+                    @click="$store.wifiModal.toggle()"
+                    >Reset</span>
+                    <button class="bg-blue-900 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none group-invalid:pointer-events-none group-invalid:opacity-30" 
+                    @click="$store.settings.toggle()"
+                    >Save</button>
+                </div>
+            </form>
+            <form x-data x-on:submit.prevent="$store.endpoints.saveNetworkConfig($formData)" class="novalidate group">
+                <div class="mt-4">
+                    <p class="mt-1 text-xl leading-6 text-gray-600 border-b border-gray-900/10 pb-2">Network configuration</p>
+                    <div class="mt-2 grid grid-cols-1 gap-x-1 gap-y-1">
+                        <div class="col-span-full">
+                            <label for="ip" class="block text-sm font-medium leading-6 text-gray-900">Static IP</label>
+                            <div class="mt-2">
+                                <input type="text" id="ip" name="ip" placeholder="192.168.1.1" required pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" 
+                                class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-00 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500  peer"
+                                />
+                                <span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                                    Please enter a valid IP address
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="subnet" class="block text-sm font-medium leading-6 text-gray-900">Subnet</label>
+                            <div class="mt-2">
+                                <input type="text" id="subnet" name="subnet" placeholder="255.255.255.0" required pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" 
+                                class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500 peer"
+                                />
+                                <span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                                    Please enter a valid IP address
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-span-full">
+                            <label for="gateway" class="block text-sm font-medium leading-6 text-gray-900">Gateway</label>
+                            <div class="mt-2">
+                                <input type="text" id="gateway" name="gateway" placeholder="192.168.1.1" required pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" 
+                                class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500 peer"
+                                />
+                            </div>
+                            <span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                                Please enter a valid IP address
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <span class="bg-gray-700 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none" 
+                    @click="$store.networkModal.toggle()"
+                    >Reset</span>
+                    <button class="bg-blue-900 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none group-invalid:pointer-events-none group-invalid:opacity-30" 
+                    @click="$store.settings.toggle()"
+                    >Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div x-data x-show="$store.wifiModal.open" class="absolute inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+    <div class="max-w-sm bg-white rounded">
+        <div class="bg-gray-800 text-white p-4 shadow-xl text-center flex items-center justify-between">
+            <h3 class="text-xl">Warning</h3>
+            <icon src="icons/close.svg" class="w-6 h-6" @click="$store.wifiModal.toggle()"></icon>
+        </div>
+        <div class="mt-4 p-6">
+            <p class="mb-4 text-sm">Are you sure to reset your wifi settings, doing so, the gaming table will reboot in acces point mode and a new wifi settings will be ask before be able to controle your table.</p>
+            <button class="px-4 py-2 text-white bg-gray-700 rounded" @click="$store.wifiModal.toggle()" >Cancel</button>
+            <button class="px-4 py-2 text-white bg-blue-900 rounded" @click="$store.wifiModal.exec()" >Save</button>
+        </div>
+    </div>
+</div>
+<div x-data x-show="$store.networkModal.open" class="absolute inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+    <div class="max-w-sm  bg-white rounded">
+        <div class="bg-gray-800 text-white p-4 shadow-xl text-center flex items-center justify-between">
+            <h3 class="text-xl">Warning</h3>
+            <icon src="icons/close.svg" class="w-6 h-6" @click="$store.networkModal.toggle()"></icon>
+        </div>
+        <div class="mt-4 p-6">
+            <p class="mb-4 text-sm">Are you sure you want to reset your network settings ?</p>
+            <button class="px-4 py-2 text-white bg-gray-700 rounded" @click="$store.networkModal.toggle()" >Cancel</button>
+            <button class="px-4 py-2 text-white bg-blue-900 rounded" @click="$store.networkModal.exec()" >Save</button>
+        </div>
+    </div>
+</div>
