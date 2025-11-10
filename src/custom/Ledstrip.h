@@ -22,6 +22,7 @@ class Ledstrip {
         void resetPreviousState();
         CRGB getColor();
         void changeColor(String hexColorString);
+        void changeColor(CRGB newColor);
         uint8_t getBrightness();
         void changeBrightness(uint8_t newBrightness);
         void initLedstrip();

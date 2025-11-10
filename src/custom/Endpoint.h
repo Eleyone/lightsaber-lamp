@@ -6,6 +6,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "Ledstrip.h"
+#include "MqttManager.h"
 
 class Endpoint {
     AsyncWebServer *_server;
@@ -13,12 +14,15 @@ class Endpoint {
     Preferences *_prefs;
     Ledstrip *_lukeLedStrip;
     Ledstrip *_vaderLedStrip;
+    MqttManager *_mqttManager;
     public:
-        Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preferences *prefs, Ledstrip *lukeLedStrip, Ledstrip *vaderLedStrip);
+        Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preferences *prefs, Ledstrip *lukeLedStrip, Ledstrip *vaderLedStrip, MqttManager *mqttManager);
         void wifiConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len);
         void networkConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len);
         void resetWifiConfig(AsyncWebServerRequest *request);
         void resetNetworkConfig(AsyncWebServerRequest *request);
+        void mqttConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len);
+        void resetMqttConfig(AsyncWebServerRequest *request);
         void status(AsyncWebServerRequest *request);
         void initHotpsotRouting();
         void initClientRouting();

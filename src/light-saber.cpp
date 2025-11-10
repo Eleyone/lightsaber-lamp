@@ -10,6 +10,7 @@
 #include "custom/Ledstrip.h"
 #include "custom/Endpoint.h"
 #include "custom/Network.h"
+#include "custom/MqttManager.h"
 #include "Config.h"
 
 Preferences prefs;
@@ -25,7 +26,8 @@ Ledstrip lukeLedStrip("luke_strip", COLOR_LUKE);
 Ledstrip vaderLedStrip("vader_strip", COLOR_VADER);
 
 Network network(&prefs);
-Endpoint endpoint(&server, &ws, &prefs, &lukeLedStrip, &vaderLedStrip);
+MqttManager mqttManager(&prefs, &lukeLedStrip, &vaderLedStrip);
+Endpoint endpoint(&server, &ws, &prefs, &lukeLedStrip, &vaderLedStrip, &mqttManager);
 
 static InputDebounce buttonLuke;
 static InputDebounce buttonVader;
@@ -54,12 +56,14 @@ void buttonLukePressedCallback(uint8_t pinIn) {
   Serial.print("Luke button push");
   bool newLukeState = !lukeLedStrip.getPreviousState();
   lukeLedStrip.changeState(newLukeState);
+  endpoint.wsBroadcastLedStatus();
 }
 
 void buttonVaderPressedCallback(uint8_t pinIn) {
   Serial.print("Vader button push");
   bool newVaderState = !vaderLedStrip.getPreviousState();
   vaderLedStrip.changeState(newVaderState);
+  endpoint.wsBroadcastLedStatus();
 }
 
 void loopButton() {
@@ -198,6 +202,8 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
+  mqttManager.init();
+
   ledControllers[LUKE] = &FastLED.addLeds<LED_TYPE, LUKE_LED_PIN, COLOR_ORDER>(lukeLeds, NB_LED_SABER);
   ledControllers[VADER] = &FastLED.addLeds<LED_TYPE, VADER_LED_PIN, COLOR_ORDER>(vaderLeds, NB_LED_SABER);
   lukeLedStrip.initLedstrip();
@@ -212,4 +218,5 @@ void setup() {
 void loop() {
   loopButton();
   loopLed();
+  mqttManager.loop();
 }

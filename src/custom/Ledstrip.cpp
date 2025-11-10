@@ -35,6 +35,11 @@ void Ledstrip::changeColor(String hexColorString)
     this->_color = Utils::getCRGBFromHEXColorString(hexColorString);
 }
 
+void Ledstrip::changeColor(CRGB newColor)
+{
+    this->_color = newColor;
+}
+
 bool Ledstrip::getState()
 {
     return this->_state;

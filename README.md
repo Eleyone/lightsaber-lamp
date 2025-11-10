@@ -19,7 +19,7 @@
 
 ## Install
 
-Devlop with VSCode and platformIO 
+Devlop with VSCode and platformIO
 
 Once install, go to the app directory and run ```npm install```
 
@@ -30,7 +30,9 @@ Once install, go to the app directory and run ```npm install```
 - LittleFS
 - WiFi
 - AsyncElegantOTA
-- AiEsp32RotaryEncoder
+- ArduinoJson v7
+- PubSubClient (MQTT)
+- InputDebounce
 
 ### Build
 
@@ -38,6 +40,98 @@ First you need to build the app. To do so, from the app directory run command
 ```npm run build```
 
 Once this is done, you can upload data partition to the ESP, build the firmware and uplaod it.
+
+## Features
+
+### Control Methods
+
+The LightSaber Lamp supports three independent control interfaces that stay synchronized:
+
+1. **Physical Buttons** - Direct control via GPIO switches
+2. **Web Interface** - Real-time control via WebSocket (http://device-ip)
+3. **Home Assistant** - Remote automation via MQTT with auto-discovery
+
+### Control Parameters (per saber)
+
+For each sabre (Luke and Vader), you can control:
+- **On/Off** - Power the LED strip on or off
+- **Brightness** - 0-255 intensity level
+- **Color** - Full RGB color control (0-255 per channel)
+
+### MQTT & Home Assistant Integration
+
+The device automatically publishes itself to Home Assistant using MQTT Discovery. Once configured with your MQTT broker, both sabers appear as controllable light entities in Home Assistant.
+
+**Configuration:**
+1. Access the web UI (http://device-ip)
+2. Navigate to Settings → MQTT
+3. Enter your MQTT broker address and port
+4. Save (device will restart)
+5. Both lights should appear in Home Assistant under "Discovered Devices"
+
+**MQTT Topics:**
+- Luke state: `homeassistant/light/light_saber/luke_saber/state`
+- Vader state: `homeassistant/light/light_saber/vader_saber/state`
+- Commands: `homeassistant/light/light_saber/{luke,vader}_saber/set`
+
+## Event Cycle & Synchronization
+
+The device maintains state synchronization across all three control interfaces using an event-driven architecture:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      LED State Change Event                     │
+│                                                                  │
+│  Triggered by: Button Press │ Web UI │ HomeAssistant Command   │
+└──────────────────────────────────────┬──────────────────────────┘
+                                       │
+                    ┌──────────────────▼──────────────────┐
+                    │  Update Ledstrip Object             │
+                    │  - state, brightness, color         │
+                    └──────────────────┬──────────────────┘
+                                       │
+          ┌────────────────────────────┼────────────────────────────┐
+          │                            │                            │
+          ▼                            ▼                            ▼
+    ┌──────────────┐           ┌──────────────┐           ┌──────────────┐
+    │ LED Animation│           │ WebSocket    │           │ MQTT Publish │
+    │              │           │ Broadcast    │           │              │
+    │ powerUp()    │           │              │           │ Publish to   │
+    │ powerDown()  │           │ All web UI   │           │ homeassistant│
+    │ powerLoop()  │           │ clients      │           │ /*/state     │
+    │              │           │ receive      │           │              │
+    └──────────────┘           │ status JSON  │           └──────────────┘
+                               │              │
+                               └──────────────┘
+                                       │
+                                       ▼
+                    ┌──────────────────────────────────┐
+                    │ All 3 interfaces show same state │
+                    │ Synchronization complete        │
+                    └──────────────────────────────────┘
+```
+
+### Event Priority
+
+When multiple control sources try to change state simultaneously:
+1. **Physical buttons** have highest priority (hardware directly changes Ledstrip)
+2. **Web UI** and **HomeAssistant** changes treated equally
+3. Last-write-wins if conflicts occur (rare with human-speed inputs)
+
+### Offline Behavior
+
+If MQTT broker becomes unavailable:
+- Device continues to operate normally (buttons & web UI work)
+- No error states or lockups
+- Automatic reconnection attempts every 5 seconds
+- Home Assistant shows device as offline until reconnection
+
+### State Persistence
+
+- LED color and brightness settings are saved to flash storage
+- Settings survive power cycles
+- Button and web UI changes are persistent
+- MQTT configuration is persistent (requires device restart to apply)
 
 ## Arduino development ressources
 

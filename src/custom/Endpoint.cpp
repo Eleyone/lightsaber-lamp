@@ -7,14 +7,16 @@
 #include <ArduinoJson.h>
 #include "Ledstrip.h"
 #include "Endpoint.h"
+#include "MqttManager.h"
 #include "Utils.h"
 
-Endpoint::Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preferences *prefs, Ledstrip *lukeLedStrip, Ledstrip *vaderLedStrip):
+Endpoint::Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preferences *prefs, Ledstrip *lukeLedStrip, Ledstrip *vaderLedStrip, MqttManager *mqttManager):
   _prefs(prefs),
   _server(server),
   _lukeLedStrip(lukeLedStrip),
   _vaderLedStrip(vaderLedStrip),
-  _websocket(websocket)
+  _websocket(websocket),
+  _mqttManager(mqttManager)
 {}
 
 DynamicJsonDocument Endpoint::_getFullStatusJson() {
@@ -243,6 +245,16 @@ void Endpoint::initClientRouting()
     Serial.println("/reset-wifi-settings: Recieving POST with no data");
     this->resetWifiConfig(request);
   });
+  _server->on("/mqtt-settings", HTTP_POST, [&](AsyncWebServerRequest *request){
+    Serial.println("/mqtt-settings: Recieving POST with no data");
+  }, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    Serial.println("/mqtt-settings: Recieving POST with data");
+    this->mqttConfig(request, data, len);
+  });
+  _server->on("/reset-mqtt-settings", HTTP_POST, [&](AsyncWebServerRequest *request){
+    Serial.println("/reset-mqtt-settings: Recieving POST with no data");
+    this->resetMqttConfig(request);
+  });
 }
 
 void Endpoint::_initStatics()
@@ -319,6 +331,11 @@ void Endpoint::wsMessageHandler(void *arg, uint8_t *data, size_t len) {
     char   buffer[200]; // create temp buffer
     size_t len = serializeJson(message, buffer);
     _websocket->textAll(buffer, len);
+
+    // Publish to MQTT
+    if (_mqttManager) {
+      _mqttManager->publishAllStatus();
+    }
   }
 }
 
@@ -331,4 +348,47 @@ void Endpoint::wsBroadcastLedStatus() {
   char   buffer[200]; // create temp buffer
   size_t len = serializeJson(json, buffer);
   _websocket->textAll(buffer, len);
+
+  // Publish to MQTT
+  if (_mqttManager) {
+    _mqttManager->publishAllStatus();
+  }
+}
+
+void Endpoint::mqttConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len) {
+  const size_t capacity = len + 60;
+  DynamicJsonDocument json(capacity);
+
+  DeserializationError error = deserializeJson(json, (const char *)data, len);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    this->_error(request, "Error parsing JSON");
+    return;
+  }
+
+  JsonObject object = json.as<JsonObject>();
+
+  String broker = object["broker"];
+  uint16_t port = object["port"] | 1883;
+
+  if (!broker.isEmpty()) {
+    if (_mqttManager) {
+      _mqttManager->saveConfig(broker, port);
+    }
+    this->_success(request, "MQTT configuration saved. Device will restart to reconnect to the new MQTT broker.");
+    delay(1000);
+    ESP.restart();
+  } else {
+    this->_error(request, "Broker address is mandatory.");
+  }
+}
+
+void Endpoint::resetMqttConfig(AsyncWebServerRequest *request) {
+  if (_mqttManager) {
+    _mqttManager->resetConfig();
+  }
+  this->_success(request, "MQTT configuration reset. Device will restart.");
+  delay(1000);
+  ESP.restart();
 }
