@@ -268,17 +268,14 @@ void Endpoint::_initStatics()
     Serial.println("Sending app.js");
     request->send(LittleFS, "/app.js", "text/javascript");
   });
-  _server->on("/app.css.map", HTTP_GET, [&](AsyncWebServerRequest *request){
-    Serial.println("Sending app.css.map");
-    request->send(LittleFS, "/app.css.map", "text/plain");
+  _server->on("/fa.icon.png", HTTP_GET, [&](AsyncWebServerRequest *request){
+    Serial.println("Sending favicon.png");
+    request->send(LittleFS, "/fa.icon.png", "image/png");
   });
-  _server->on("/app.js.map", HTTP_GET, [&](AsyncWebServerRequest *request){
-    Serial.println("Sending app.js.map");
-    request->send(LittleFS, "/app.js.map", "text/plain");
-  });
+  // Legacy favicon redirect for compatibility
   _server->on("/favicon.ico", HTTP_GET, [&](AsyncWebServerRequest *request){
-    Serial.println("Sending favicon.ico");
-    request->send(LittleFS, "/favicon.ico", "image/x-icon");
+    Serial.println("Redirecting favicon.ico to fa.icon.png");
+    request->send(LittleFS, "/fa.icon.png", "image/png");
   });
 }
 
