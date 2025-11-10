@@ -15,6 +15,11 @@ class Endpoint {
     Ledstrip *_lukeLedStrip;
     Ledstrip *_vaderLedStrip;
     MqttManager *_mqttManager;
+
+    // JSON buffer pool (reusable to avoid repeated allocations)
+    static const size_t JSON_BUFFER_SIZE = 1024;
+    DynamicJsonDocument _jsonBuffer{JSON_BUFFER_SIZE};
+
     public:
         Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preferences *prefs, Ledstrip *lukeLedStrip, Ledstrip *vaderLedStrip, MqttManager *mqttManager);
         void wifiConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len);
@@ -35,5 +40,6 @@ class Endpoint {
         void _error(AsyncWebServerRequest *request, const char *message);
         void _success(AsyncWebServerRequest *request, const char *message);
         DynamicJsonDocument _getFullStatusJson();
+        void _broadcastLedStatusWebsocketOnly();  // Internal WS broadcast only
 };
 #endif

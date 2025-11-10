@@ -74,43 +74,54 @@ void MqttManager::_setupMqtt() {
   Serial.println("MQTT Client setup complete");
 }
 
+// Helper function to create discovery payload for a saber
+void MqttManager::_publishDiscoveryForSaber(const char* saberName, const char* saberId, const char* saberPath) {
+  if (!_isConnected || !_mqttClient) return;
+
+  // Build JSON using ArduinoJson instead of string concatenation
+  DynamicJsonDocument doc(512);  // 512 bytes for discovery payload
+
+  doc["name"] = saberName;
+  doc["unique_id"] = saberId;
+  doc["cmd_t"] = String(saberPath) + "/set";
+  doc["stat_t"] = String(saberPath) + "/state";
+  doc["bri_cmd_t"] = String(saberPath) + "/brightness/set";
+  doc["bri_stat_t"] = String(saberPath) + "/brightness";
+  doc["rgb_cmd_t"] = String(saberPath) + "/color/set";
+  doc["rgb_stat_t"] = String(saberPath) + "/color";
+  doc["brightness_scale"] = 255;
+  doc["schema"] = "json";
+
+  JsonObject device = doc.createNestedObject("device");
+  device["name"] = "Light Saber Lamp";
+  device["identifiers"][0] = "light_saber_esp32";
+
+  // Serialize to buffer
+  char buffer[512];
+  size_t len = serializeJson(doc, buffer);
+
+  // Publish discovery
+  String discoveryTopic = String(saberPath) + "/config";
+  _mqttClient->publish(discoveryTopic.c_str(), (uint8_t *)buffer, len, true);
+  Serial.printf("Published discovery for %s: %s\n", saberName, discoveryTopic.c_str());
+}
+
 void MqttManager::_publishDiscovery() {
   if (!_isConnected || !_mqttClient) return;
 
-  String discoveryTopic;
-  String configPayload;
-
   // Luke Light Discovery
-  discoveryTopic = "homeassistant/light/light_saber/luke_saber/config";
-  configPayload = "{\"name\":\"Luke Saber\",\"unique_id\":\"luke_saber_esp32\",";
-  configPayload += "\"cmd_t\":\"homeassistant/light/light_saber/luke_saber/set\",";
-  configPayload += "\"stat_t\":\"homeassistant/light/light_saber/luke_saber/state\",";
-  configPayload += "\"bri_cmd_t\":\"homeassistant/light/light_saber/luke_saber/brightness/set\",";
-  configPayload += "\"bri_stat_t\":\"homeassistant/light/light_saber/luke_saber/brightness\",";
-  configPayload += "\"rgb_cmd_t\":\"homeassistant/light/light_saber/luke_saber/color/set\",";
-  configPayload += "\"rgb_stat_t\":\"homeassistant/light/light_saber/luke_saber/color\",";
-  configPayload += "\"brightness_scale\":255,\"schema\":\"json\",\"device\":{";
-  configPayload += "\"name\":\"Light Saber Lamp\",\"identifiers\":[\"light_saber_esp32\"]";
-  configPayload += "}}";
-
-  _mqttClient->publish(discoveryTopic.c_str(), (uint8_t *)configPayload.c_str(), configPayload.length(), true);
-  Serial.printf("Published discovery for Luke: %s\n", discoveryTopic.c_str());
+  _publishDiscoveryForSaber(
+    "Luke Saber",
+    "luke_saber_esp32",
+    "homeassistant/light/light_saber/luke_saber"
+  );
 
   // Vader Light Discovery
-  discoveryTopic = "homeassistant/light/light_saber/vader_saber/config";
-  configPayload = "{\"name\":\"Vader Saber\",\"unique_id\":\"vader_saber_esp32\",";
-  configPayload += "\"cmd_t\":\"homeassistant/light/light_saber/vader_saber/set\",";
-  configPayload += "\"stat_t\":\"homeassistant/light/light_saber/vader_saber/state\",";
-  configPayload += "\"bri_cmd_t\":\"homeassistant/light/light_saber/vader_saber/brightness/set\",";
-  configPayload += "\"bri_stat_t\":\"homeassistant/light/light_saber/vader_saber/brightness\",";
-  configPayload += "\"rgb_cmd_t\":\"homeassistant/light/light_saber/vader_saber/color/set\",";
-  configPayload += "\"rgb_stat_t\":\"homeassistant/light/light_saber/vader_saber/color\",";
-  configPayload += "\"brightness_scale\":255,\"schema\":\"json\",\"device\":{";
-  configPayload += "\"name\":\"Light Saber Lamp\",\"identifiers\":[\"light_saber_esp32\"]";
-  configPayload += "}}";
-
-  _mqttClient->publish(discoveryTopic.c_str(), (uint8_t *)configPayload.c_str(), configPayload.length(), true);
-  Serial.printf("Published discovery for Vader: %s\n", discoveryTopic.c_str());
+  _publishDiscoveryForSaber(
+    "Vader Saber",
+    "vader_saber_esp32",
+    "homeassistant/light/light_saber/vader_saber"
+  );
 }
 
 void MqttManager::_handleMessage(char *topic, byte *payload, unsigned int length) {

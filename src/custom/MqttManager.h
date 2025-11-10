@@ -25,6 +25,7 @@ class MqttManager {
     // Helper methods
     void _setupMqtt();
     void _publishDiscovery();
+    void _publishDiscoveryForSaber(const char* saberName, const char* saberId, const char* saberPath);
     void _handleMessage(char *topic, byte *payload, unsigned int length);
 
     // Static callback for MQTT

@@ -20,19 +20,20 @@ Endpoint::Endpoint(AsyncWebServer *server, AsyncWebSocket *websocket, Preference
 {}
 
 DynamicJsonDocument Endpoint::_getFullStatusJson() {
-  DynamicJsonDocument json(1024);
+  // Reuse the buffer instead of allocating new one each time
+  _jsonBuffer.clear();
 
-  JsonObject jsonLukeLedStrip  = json.createNestedObject(_lukeLedStrip->getName());
+  JsonObject jsonLukeLedStrip  = _jsonBuffer.createNestedObject(_lukeLedStrip->getName());
   jsonLukeLedStrip["state"] = _lukeLedStrip->getState();
   jsonLukeLedStrip["color"] = Utils::getHEXColorStringFromCRGB(_lukeLedStrip->getColor());
   jsonLukeLedStrip["brightness"] = _lukeLedStrip->getBrightness();
 
-  JsonObject jsonVaderLedStrip  = json.createNestedObject(_vaderLedStrip->getName());
+  JsonObject jsonVaderLedStrip  = _jsonBuffer.createNestedObject(_vaderLedStrip->getName());
   jsonVaderLedStrip["state"] = _vaderLedStrip->getState();
   jsonVaderLedStrip["color"] = Utils::getHEXColorStringFromCRGB(_vaderLedStrip->getColor());
   jsonVaderLedStrip["brightness"] = _vaderLedStrip->getBrightness();
 
-  return json;
+  return _jsonBuffer;
 }
 
 void Endpoint::status(AsyncWebServerRequest *request) {
@@ -281,6 +282,28 @@ void Endpoint::_initStatics()
   });
 }
 
+// Internal function: broadcast via WebSocket only (no MQTT)
+void Endpoint::_broadcastLedStatusWebsocketOnly() {
+  DynamicJsonDocument json = this->_getFullStatusJson();
+
+  Serial.println("Sending status json :");
+  serializeJsonPretty(json, Serial);
+
+  char   buffer[200]; // create temp buffer
+  size_t len = serializeJson(json, buffer);
+  _websocket->textAll(buffer, len);
+}
+
+// Public function: broadcast WebSocket AND publish MQTT
+void Endpoint::wsBroadcastLedStatus() {
+  _broadcastLedStatusWebsocketOnly();
+
+  // Publish to MQTT (only once)
+  if (_mqttManager) {
+    _mqttManager->publishAllStatus();
+  }
+}
+
 void Endpoint::wsMessageHandler(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -325,33 +348,13 @@ void Endpoint::wsMessageHandler(void *arg, uint8_t *data, size_t len) {
       }
     }
 
-    Serial.println("Sending status json :");
-    serializeJsonPretty(message, Serial);
+    // Broadcast update via WebSocket
+    _broadcastLedStatusWebsocketOnly();
 
-    char   buffer[200]; // create temp buffer
-    size_t len = serializeJson(message, buffer);
-    _websocket->textAll(buffer, len);
-
-    // Publish to MQTT
+    // Publish to MQTT (only once)
     if (_mqttManager) {
       _mqttManager->publishAllStatus();
     }
-  }
-}
-
-void Endpoint::wsBroadcastLedStatus() {
-  DynamicJsonDocument json = this->_getFullStatusJson();
-
-  Serial.println("Sending status json :");
-  serializeJsonPretty(json, Serial);
-
-  char   buffer[200]; // create temp buffer
-  size_t len = serializeJson(json, buffer);
-  _websocket->textAll(buffer, len);
-
-  // Publish to MQTT
-  if (_mqttManager) {
-    _mqttManager->publishAllStatus();
   }
 }
 
