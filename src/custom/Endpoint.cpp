@@ -377,7 +377,9 @@ void Endpoint::_broadcastLedStatusWebsocketOnly() {
   Serial.println("Sending status json :");
   serializeJsonPretty(json, Serial);
 
-  char   buffer[200]; // create temp buffer
+  // Use larger buffer to accommodate full status JSON with WiFi info
+  // JSON includes: led states (luke/vader), colors, brightness, mqtt config, and wifi status
+  char buffer[1024]; // Increased from 200 to 1024 bytes
   size_t len = serializeJson(json, buffer);
   _websocket->textAll(buffer, len);
 }
