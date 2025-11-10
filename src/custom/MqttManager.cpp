@@ -81,35 +81,52 @@ void MqttManager::_setupMqtt() {
 }
 
 // Helper function to create discovery payload for a saber
+// Home Assistant MQTT Light Discovery format
 void MqttManager::_publishDiscoveryForSaber(const char* saberName, const char* saberId, const char* saberPath) {
   if (!_isConnected || !_mqttClient) return;
 
-  // Build JSON using ArduinoJson instead of string concatenation
-  DynamicJsonDocument doc(512);  // 512 bytes for discovery payload
+  // Build JSON using ArduinoJson - Home Assistant requires specific fields
+  DynamicJsonDocument doc(768);  // Increased from 512 to accommodate all fields
 
+  // Basic light entity properties
   doc["name"] = saberName;
   doc["unique_id"] = saberId;
-  doc["cmd_t"] = String(saberPath) + "/set";
-  doc["stat_t"] = String(saberPath) + "/state";
-  doc["bri_cmd_t"] = String(saberPath) + "/brightness/set";
-  doc["bri_stat_t"] = String(saberPath) + "/brightness";
-  doc["rgb_cmd_t"] = String(saberPath) + "/color/set";
-  doc["rgb_stat_t"] = String(saberPath) + "/color";
-  doc["brightness_scale"] = 255;
-  doc["schema"] = "json";
 
+  // MQTT Topic configuration
+  doc["cmd_t"] = String(saberPath) + "/set";      // Command topic
+  doc["stat_t"] = String(saberPath) + "/state";   // State topic for on/off
+  doc["bri_cmd_t"] = String(saberPath) + "/set";  // Brightness commands go to same set topic
+  doc["bri_stat_t"] = String(saberPath) + "/brightness";  // Brightness state topic
+  doc["rgb_cmd_t"] = String(saberPath) + "/set";  // RGB commands go to same set topic
+  doc["rgb_stat_t"] = String(saberPath) + "/color";      // Color state topic
+
+  // Additional required fields for Home Assistant
+  doc["brightness_scale"] = 255;
+  doc["color_mode"] = true;
+  doc["supported_color_modes"][0] = "rgb";
+  doc["schema"] = "json";
+  doc["effect"] = false;
+
+  // Device information - important for grouping in Home Assistant
   JsonObject device = doc.createNestedObject("device");
   device["name"] = "Light Saber Lamp";
   device["identifiers"][0] = "light_saber_esp32";
+  device["manufacturer"] = "DIY";
+  device["model"] = "ESP32 Light Saber";
+  device["sw_version"] = "1.0.0";
 
   // Serialize to buffer
-  char buffer[512];
+  char buffer[768];
   size_t len = serializeJson(doc, buffer);
 
-  // Publish discovery
+  // Publish discovery to MQTT
+  // Home Assistant MQTT Discovery expects: homeassistant/light/{device_id}/config
   String discoveryTopic = String(saberPath) + "/config";
+  Serial.printf("Publishing discovery payload (%d bytes) to %s\n", len, discoveryTopic.c_str());
+  Serial.printf("Payload: %s\n", buffer);
+
   _mqttClient->publish(discoveryTopic.c_str(), (uint8_t *)buffer, len, true);
-  Serial.printf("Published discovery for %s: %s\n", saberName, discoveryTopic.c_str());
+  Serial.printf("Published discovery for %s\n", saberName);
 }
 
 void MqttManager::_publishDiscovery() {
@@ -264,19 +281,27 @@ void MqttManager::publishLukeStatus() {
 
   Serial.println("MQTT: Publishing Luke status");
 
-  // Publish state
-  String stateMsg = _lukeLedStrip->getState() ? "ON" : "OFF";
-  _mqttClient->publish("homeassistant/light/light_saber/luke_saber/state", stateMsg.c_str(), true);
+  // Home Assistant expects a combined JSON on the state topic
+  // This JSON includes state, brightness, and color all together
+  DynamicJsonDocument statusDoc(512);
 
-  // Publish brightness
-  String brightnessMsg = String(_lukeLedStrip->getBrightness());
-  _mqttClient->publish("homeassistant/light/light_saber/luke_saber/brightness", brightnessMsg.c_str(), true);
+  statusDoc["state"] = _lukeLedStrip->getState() ? "ON" : "OFF";
+  statusDoc["brightness"] = _lukeLedStrip->getBrightness();
 
-  // Publish color as RGB
   CRGB color = _lukeLedStrip->getColor();
-  char colorMsg[32];
-  snprintf(colorMsg, sizeof(colorMsg), "{\"r\":%d,\"g\":%d,\"b\":%d}", color.r, color.g, color.b);
-  _mqttClient->publish("homeassistant/light/light_saber/luke_saber/color", (uint8_t *)colorMsg, strlen(colorMsg), true);
+  JsonObject colorObj = statusDoc.createNestedObject("color");
+  colorObj["r"] = color.r;
+  colorObj["g"] = color.g;
+  colorObj["b"] = color.b;
+
+  // Serialize combined status
+  char buffer[512];
+  size_t len = serializeJson(statusDoc, buffer);
+
+  // Publish complete status as JSON
+  _mqttClient->publish("homeassistant/light/light_saber/luke_saber/state", (uint8_t *)buffer, len, true);
+
+  Serial.printf("Published Luke status: %s\n", buffer);
 }
 
 void MqttManager::publishVaderStatus() {
@@ -286,19 +311,27 @@ void MqttManager::publishVaderStatus() {
 
   Serial.println("MQTT: Publishing Vader status");
 
-  // Publish state
-  String stateMsg = _vaderLedStrip->getState() ? "ON" : "OFF";
-  _mqttClient->publish("homeassistant/light/light_saber/vader_saber/state", stateMsg.c_str(), true);
+  // Home Assistant expects a combined JSON on the state topic
+  // This JSON includes state, brightness, and color all together
+  DynamicJsonDocument statusDoc(512);
 
-  // Publish brightness
-  String brightnessMsg = String(_vaderLedStrip->getBrightness());
-  _mqttClient->publish("homeassistant/light/light_saber/vader_saber/brightness", brightnessMsg.c_str(), true);
+  statusDoc["state"] = _vaderLedStrip->getState() ? "ON" : "OFF";
+  statusDoc["brightness"] = _vaderLedStrip->getBrightness();
 
-  // Publish color as RGB
   CRGB color = _vaderLedStrip->getColor();
-  char colorMsg[32];
-  snprintf(colorMsg, sizeof(colorMsg), "{\"r\":%d,\"g\":%d,\"b\":%d}", color.r, color.g, color.b);
-  _mqttClient->publish("homeassistant/light/light_saber/vader_saber/color", (uint8_t *)colorMsg, strlen(colorMsg), true);
+  JsonObject colorObj = statusDoc.createNestedObject("color");
+  colorObj["r"] = color.r;
+  colorObj["g"] = color.g;
+  colorObj["b"] = color.b;
+
+  // Serialize combined status
+  char buffer[512];
+  size_t len = serializeJson(statusDoc, buffer);
+
+  // Publish complete status as JSON
+  _mqttClient->publish("homeassistant/light/light_saber/vader_saber/state", (uint8_t *)buffer, len, true);
+
+  Serial.printf("Published Vader status: %s\n", buffer);
 }
 
 void MqttManager::publishAllStatus() {
