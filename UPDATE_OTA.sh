@@ -26,11 +26,11 @@ echo ""
 echo "2️⃣  Copie des fichiers compilés..."
 mkdir -p data
 rm -f data/app.css data/app.js data/fa.icon.png data/hotspot.html data/index.html
-cp dist/app.css data/
-cp dist/app.js data/
-cp dist/fa.icon.png data/
-cp dist/hotspot.html data/
-cp dist/index.html data/
+cp app/build/app.css data/
+cp app/build/app.js data/
+cp app/build/fa.icon.png data/
+cp app/build/hotspot.html data/
+cp app/build/index.html data/
 echo "✅ Fichiers copiés vers data/"
 echo ""
 
@@ -71,7 +71,34 @@ if [ $? -eq 0 ]; then
     # Vérifier que l'appareil est revenu
     if ping -c 1 $DEVICE_IP > /dev/null 2>&1; then
         echo "✅ L'appareil est de retour en ligne!"
+        echo ""
+
+        # Attendre un peu que l'appareil soit complètement prêt
+        sleep 2
+
+        # Récupérer les versions
+        echo "📋 Version Information:"
+        echo "   Récupération des versions depuis le device..."
+
+        FW_INFO=$(curl --silent http://$DEVICE_IP/api/version)
+        if [ ! -z "$FW_INFO" ]; then
+            FW_VERSION=$(echo $FW_INFO | grep -o '"firmware":"[^"]*"' | cut -d'"' -f4)
+            BUILD_DATE=$(echo $FW_INFO | grep -o '"build_date":"[^"]*"' | cut -d'"' -f4)
+            echo "   ✅ Firmware: $FW_VERSION"
+            echo "   ✅ Build Date: $BUILD_DATE"
+        fi
+
+        APP_INFO=$(curl --silent http://$DEVICE_IP/version.json)
+        if [ ! -z "$APP_INFO" ]; then
+            APP_VERSION=$(echo $APP_INFO | grep -o '"app":"[^"]*"' | cut -d'"' -f4)
+            APP_BUILD=$(echo $APP_INFO | grep -o '"buildTime":"[^"]*"' | cut -d'"' -f4)
+            echo "   ✅ App: $APP_VERSION"
+            echo "   ✅ App Build: $APP_BUILD"
+        fi
+
+        echo ""
         echo "✅ Mise à jour complétée avec succès !"
+        echo "   Accédez à http://$DEVICE_IP pour utiliser votre appareil"
     else
         echo "⚠️  L'appareil n'a pas répondu au ping. Attendez quelques secondes et vérifiez la connexion."
     fi

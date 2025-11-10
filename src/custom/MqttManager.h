@@ -19,6 +19,8 @@ class MqttManager {
     String _mqttBroker;
     uint16_t _mqttPort;
     String _mqttClientId;
+    String _mqttUsername;
+    String _mqttPassword;
     bool _isInitialized;
     bool _isConnected;
     unsigned long _lastReconnectAttempt = 0;
@@ -45,7 +47,7 @@ class MqttManager {
 
     // Config
     void loadConfig();
-    void saveConfig(String broker, uint16_t port);
+    void saveConfig(String broker, uint16_t port, String username = "", String password = "");
     void resetConfig();
 
     // Publishing
@@ -56,6 +58,8 @@ class MqttManager {
     // Getters
     String getMqttBroker() { return _mqttBroker; }
     uint16_t getMqttPort() { return _mqttPort; }
+    String getMqttUsername() { return _mqttUsername; }
+    String getMqttPassword() { return _mqttPassword; }
     bool isInitialized() { return _isInitialized; }
 };
 

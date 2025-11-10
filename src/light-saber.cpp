@@ -228,5 +228,6 @@ void setup() {
 void loop() {
   loopButton();
   loopLed();
+  network.loop();  // Background WiFi reconnection
   mqttManager.loop();
 }

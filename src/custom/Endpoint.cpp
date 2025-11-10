@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include "../Config.h"
 #include "Ledstrip.h"
 #include "Endpoint.h"
 #include "MqttManager.h"
@@ -33,6 +34,22 @@ DynamicJsonDocument Endpoint::_getFullStatusJson() {
   jsonVaderLedStrip["color"] = Utils::getHEXColorStringFromCRGB(_vaderLedStrip->getColor());
   jsonVaderLedStrip["brightness"] = _vaderLedStrip->getBrightness();
 
+  // Add MQTT status
+  if (_mqttManager) {
+    JsonObject jsonMqtt = _jsonBuffer.createNestedObject("mqtt");
+    jsonMqtt["connected"] = _mqttManager->isConnected();
+    jsonMqtt["broker"] = _mqttManager->getMqttBroker();
+    jsonMqtt["port"] = _mqttManager->getMqttPort();
+  }
+
+  // Add WiFi status for debugging
+  JsonObject jsonWifi = _jsonBuffer.createNestedObject("wifi");
+  jsonWifi["status"] = WiFi.status();  // 0=OFF, 1=SCANNING, 2=FAILED, 3=NO_SSID, 4=CONNECTED, 6=DISCONNECTED
+  jsonWifi["connected"] = (WiFi.status() == WL_CONNECTED);
+  jsonWifi["mode"] = WiFi.getMode();  // 1=STA, 2=AP, 3=STA+AP
+  jsonWifi["local_ip"] = WiFi.localIP().toString();
+  jsonWifi["ap_ip"] = WiFi.softAPIP().toString();
+
   return _jsonBuffer;
 }
 
@@ -50,6 +67,18 @@ void Endpoint::status(AsyncWebServerRequest *request) {
 
   char   buffer[200]; // create temp buffer
   size_t len = serializeJson(json, buffer);
+
+  request->send(response);
+}
+
+void Endpoint::version(AsyncWebServerRequest *request) {
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  response->setCode(200);
+
+  const char* json_response = "{\"firmware\":\"1.2.0\",\"build_date\":\"Nov 10 2025\"}";
+
+  size_t len = strlen(json_response);
+  response->write((const uint8_t*)json_response, len);
 
   request->send(response);
 }
@@ -109,7 +138,7 @@ void Endpoint::_success(AsyncWebServerRequest *request, const char *message)
 void Endpoint::wifiConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len) {
   const size_t capacity = len + 60;
   DynamicJsonDocument json(capacity);
-  
+
   DeserializationError error = deserializeJson(json, (const char *)data, len);
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
@@ -129,7 +158,14 @@ void Endpoint::wifiConfig(AsyncWebServerRequest *request, uint8_t *data, size_t 
     this->_prefs->putString("PWD",PWD);
     this->_prefs->end();
 
-    this->_success(request, "Wifi configuration saved. Boardgame table will restart to connect to the new configured network. You can leave this page and reconnect to your configured network. You will acces to your app throug a new IP. (you can find it in your router admin)");
+    // Create response and send it before restarting
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(512);
+    responseJson["message"] = "WiFi configuration saved. Device will restart to connect to the new configured network. You can reconnect to your configured network. You will access the app through a new IP (you can find it in your router admin).";
+
+    serializeJson(responseJson, *response);
+    request->send(response);
 
     delay(1000);
     ESP.restart();
@@ -139,10 +175,10 @@ void Endpoint::wifiConfig(AsyncWebServerRequest *request, uint8_t *data, size_t 
 }
 
 void Endpoint::networkConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len) {
-  
+
   const size_t capacity = len + 60;
   DynamicJsonDocument json(capacity);
-  
+
   DeserializationError error = deserializeJson(json, (const char *)data, len);
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
@@ -164,9 +200,14 @@ void Endpoint::networkConfig(AsyncWebServerRequest *request, uint8_t *data, size
     this->_prefs->putString("Subnet", subnet);
     this->_prefs->end();
 
-    String message("Network configuration saved. Boardgame table will restart to connect with the new stati IP set. You can leave this page and navigate to the new url http://" + ip + ".");
+    // Create response and send it before restarting
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(512);
+    responseJson["message"] = "Network configuration saved. Device will restart to apply the new static IP. You can navigate to the new address http://" + ip + " after the restart.";
 
-    this->_success(request, message.c_str());
+    serializeJson(responseJson, *response);
+    request->send(response);
 
     delay(1000);
     ESP.restart();
@@ -181,7 +222,14 @@ void Endpoint::resetWifiConfig(AsyncWebServerRequest *request) {
     this->_prefs->putString("PWD", "");
     this->_prefs->end();
 
-    this->_success(request, "Wifi configuration has been reseted. Boardgame table will restart in acces point mode. You can connect to the default wif BoardgameTable, and navigate to http://192.168.1.1 to acces the wifi-settings.");
+    // Create response and send it before restarting
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(512);
+    responseJson["message"] = "WiFi configuration has been reset. Device will restart in access point mode. You can connect to LightSaberLamp WiFi and navigate to http://192.168.1.1 to reconfigure WiFi.";
+
+    serializeJson(responseJson, *response);
+    request->send(response);
 
     delay(1000);
     ESP.restart();
@@ -194,7 +242,14 @@ void Endpoint::resetNetworkConfig(AsyncWebServerRequest *request) {
     this->_prefs->putString("Subnet", "");
     this->_prefs->end();
 
-    this->_success(request, "Network configuration has been reseted. Boardgame table will restart to connect to the configured network. You will acces to your app throug a new IP. (you can find it in your router admin)");
+    // Create response and send it before restarting
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(512);
+    responseJson["message"] = "Network configuration has been reset. Device will restart and use DHCP to obtain an IP address. You can find the new IP in your router admin panel.";
+
+    serializeJson(responseJson, *response);
+    request->send(response);
 
     delay(1000);
     ESP.restart();
@@ -226,6 +281,42 @@ void Endpoint::initClientRouting()
     Serial.println("Sending status");
     this->status(request);
   });
+  _server->on("/api/version", HTTP_GET, [&](AsyncWebServerRequest *request){
+    Serial.println("Sending version");
+    this->version(request);
+  });
+  _server->on("/version.json", HTTP_GET, [&](AsyncWebServerRequest *request){
+    Serial.println("Sending version.json file");
+    request->send(LittleFS, "/version.json", "application/json");
+  });
+
+  // Debug endpoint to check WiFi configuration
+  _server->on("/debug/wifi", HTTP_GET, [&](AsyncWebServerRequest *request){
+    Serial.println("Debug: Checking saved WiFi credentials");
+    DynamicJsonDocument doc(512);
+
+    _prefs->begin("wifi", true);
+    String ssid = _prefs->getString("SSID", "");
+    String pwd = _prefs->getString("PWD", "");
+    _prefs->end();
+
+    doc["ssid"] = ssid.isEmpty() ? "(not configured)" : ssid;
+    doc["password"] = pwd.isEmpty() ? "(not configured)" : "***";
+    doc["ssid_length"] = ssid.length();
+    doc["pwd_length"] = pwd.length();
+    doc["wifi_status_code"] = WiFi.status();
+    doc["wifi_status_name"] = WiFi.status() == WL_CONNECTED ? "CONNECTED" : "NOT_CONNECTED";
+    doc["wifi_mode"] = WiFi.getMode();
+    doc["sta_ip"] = WiFi.localIP().toString();
+    doc["ap_ip"] = WiFi.softAPIP().toString();
+    doc["rssi"] = WiFi.RSSI();  // Signal strength
+    doc["is_actually_connected"] = (WiFi.localIP() != IPAddress(0, 0, 0, 0));
+
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    serializeJsonPretty(doc, *response);
+    request->send(response);
+  });
+
   _server->on("/network-settings", HTTP_POST, [&](AsyncWebServerRequest *request){
     Serial.println("/network-settings: Recieving POST with no data");
   }, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
@@ -369,15 +460,47 @@ void Endpoint::mqttConfig(AsyncWebServerRequest *request, uint8_t *data, size_t 
 
   JsonObject object = json.as<JsonObject>();
 
-  String broker = object["broker"];
-  uint16_t port = object["port"] | 1883;
+  // Support both field names: broker/mqtt_server and port/mqtt_port
+  String broker = object["mqtt_server"].as<String>();
+  if (broker.isEmpty()) {
+    broker = object["broker"].as<String>();
+  }
+
+  uint16_t port = 1883;
+  if (!object["mqtt_port"].isNull()) {
+    port = object["mqtt_port"].as<uint16_t>();
+  } else if (!object["port"].isNull()) {
+    port = object["port"].as<uint16_t>();
+  }
+
+  String username = object["mqtt_user"].as<String>();
+  String password = object["mqtt_pass"].as<String>();
 
   if (!broker.isEmpty()) {
     if (_mqttManager) {
-      _mqttManager->saveConfig(broker, port);
+      // Save broker, port, username and password
+      _mqttManager->saveConfig(broker, port, username, password);
+
+      if (!username.isEmpty() && !password.isEmpty()) {
+        Serial.printf("MQTT credentials configured: user=%s\n", username.c_str());
+      } else if (!username.isEmpty() || !password.isEmpty()) {
+        Serial.println("Warning: Only one of username/password is set. Both are recommended.");
+      } else {
+        Serial.println("MQTT: Connecting without authentication (no username/password provided)");
+      }
     }
-    this->_success(request, "MQTT configuration saved. Device will restart to reconnect to the new MQTT broker.");
-    delay(1000);
+
+    // Create response and send it before restarting
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(256);
+    responseJson["message"] = "MQTT configuration saved. Device will restart to reconnect to the new MQTT broker.";
+
+    serializeJson(responseJson, *response);
+    request->send(response);
+
+    // Schedule restart asynchronously to allow response to be sent first
+    delay(500);
     ESP.restart();
   } else {
     this->_error(request, "Broker address is mandatory.");
@@ -388,7 +511,17 @@ void Endpoint::resetMqttConfig(AsyncWebServerRequest *request) {
   if (_mqttManager) {
     _mqttManager->resetConfig();
   }
-  this->_success(request, "MQTT configuration reset. Device will restart.");
-  delay(1000);
+
+  // Create response and send it before restarting
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  response->setCode(200);
+  DynamicJsonDocument responseJson(256);
+  responseJson["message"] = "MQTT configuration reset. Device will restart.";
+
+  serializeJson(responseJson, *response);
+  request->send(response);
+
+  // Schedule restart with delay to allow response to be sent first
+  delay(500);
   ESP.restart();
 }

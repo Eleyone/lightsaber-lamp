@@ -40,6 +40,17 @@ Alpine.store('networkModal', {
     }
 });
 
+Alpine.store('mqttModal', {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+    },
+    exec() {
+        Alpine.store('endpoints').resetMqttConfig();
+        this.toggle();
+    }
+});
+
 Alpine.store('settings', {
     open: false,
     toggle() {

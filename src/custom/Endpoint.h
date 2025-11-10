@@ -29,6 +29,7 @@ class Endpoint {
         void mqttConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len);
         void resetMqttConfig(AsyncWebServerRequest *request);
         void status(AsyncWebServerRequest *request);
+        void version(AsyncWebServerRequest *request);
         void initHotpsotRouting();
         void initClientRouting();
         void wsMessageHandler(void *arg, uint8_t *data, size_t len);

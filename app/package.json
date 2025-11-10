@@ -5,7 +5,7 @@
   "description": "App to be able to control the LightSaber lamp",
   "scripts": {
     "start": "parcel --dist-dir build src/html/*.html",
-    "build": "parcel build --no-source-maps src/html/*.html",
+    "build": "node build-version.js && parcel build --dist-dir build --no-source-maps src/html/*.html && node copy-to-data.js",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:js": "eslint src --ext .js,.html",
     "lint:css": "stylelint src/**/*.css",

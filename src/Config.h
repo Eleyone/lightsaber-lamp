@@ -2,6 +2,17 @@
 #ifndef Config_h
 #define Config_h
 
+/**-- VERSION MANAGEMENT --*/
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 2
+#define VERSION_PATCH 0
+#define BUILD_DATE __DATE__ " " __TIME__
+
+// Construct semantic version string
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define VERSION_STRING TOSTRING(VERSION_MAJOR) "." TOSTRING(VERSION_MINOR) "." TOSTRING(VERSION_PATCH)
+
 /**-- Start pin list --*/
 /* led strip data pin */
 #define LUKE_LED_PIN GPIO_NUM_18

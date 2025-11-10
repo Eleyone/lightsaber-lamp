@@ -41,6 +41,83 @@ First you need to build the app. To do so, from the app directory run command
 
 Once this is done, you can upload data partition to the ESP, build the firmware and uplaod it.
 
+## Version Management
+
+The LightSaber Lamp tracks both firmware and web app versions to help you manage updates.
+
+### Checking Installed Versions
+
+**Via Web UI:**
+1. Open the device web interface (http://device-ip)
+2. Scroll down to the "Version Information" section
+3. View both Firmware and Web App versions with build dates
+
+**Via REST API:**
+```bash
+# Get firmware version
+curl http://device-ip/api/version
+# Response:
+# {
+#   "firmware": "1.2.0",
+#   "build_date": "Nov 10 2025 14:33:45"
+# }
+
+# Get app version
+curl http://device-ip/version.json
+# Response:
+# {
+#   "app": "1.0.0",
+#   "buildDate": "2025-11-10T...",
+#   "buildTime": "10/11/2025, 14:33:45"
+# }
+```
+
+### Updating Firmware and App
+
+Use the provided `UPDATE_OTA.sh` script for automatic OTA updates:
+
+```bash
+# Configure the device IP (edit UPDATE_OTA.sh)
+nano UPDATE_OTA.sh  # Change DEVICE_IP if needed
+
+# Run the update
+./UPDATE_OTA.sh
+```
+
+The script will:
+1. Build the latest web app
+2. Package it into the firmware LittleFS filesystem
+3. Upload firmware via OTA
+4. Wait for device restart
+5. Display the new versions after update
+
+### Version Numbering
+
+**Firmware:** Semantic versioning (MAJOR.MINOR.PATCH)
+- Edit `src/Config.h` to update version:
+```cpp
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 2
+#define VERSION_PATCH 0
+```
+
+**App:** Managed in `app/package.json`
+- Edit the `version` field:
+```json
+{
+  "version": "1.0.0"
+}
+```
+
+### Build Information
+
+Each build captures:
+- Version number (semantic versioning)
+- Build date and time
+- Compilation timestamp
+
+This helps track which version is running and when it was built.
+
 ## Features
 
 ### Control Methods
@@ -73,6 +150,77 @@ The device automatically publishes itself to Home Assistant using MQTT Discovery
 - Luke state: `homeassistant/light/light_saber/luke_saber/state`
 - Vader state: `homeassistant/light/light_saber/vader_saber/state`
 - Commands: `homeassistant/light/light_saber/{luke,vader}_saber/set`
+
+**Exposing Mosquitto via Swag Reverse-Proxy:**
+
+If your Home Assistant is exposed online via Swag reverse-proxy, you can expose Mosquitto on a subdomain to allow the Light Saber to connect via the public domain:
+
+1. **Add Mosquitto service to docker-compose.yml** (if not already present):
+```yaml
+mosquitto:
+  image: eclipse-mosquitto:latest
+  container_name: mosquitto
+  ports:
+    - "1883:1883"  # Internal port only, exposed via Swag
+    - "9001:9001"  # WebSocket (optional)
+  volumes:
+    - ./mosquitto/config:/mosquitto/config
+    - ./mosquitto/data:/mosquitto/data
+  networks:
+    - proxy
+  environment:
+    - TZ=Europe/Paris
+```
+
+2. **Create Mosquitto configuration** (mosquitto/config/mosquitto.conf):
+```
+listener 1883
+protocol mqtt
+
+allow_anonymous true
+persistence true
+persistence_location /mosquitto/data/
+log_dest file /mosquitto/log/mosquitto.log
+```
+
+3. **Configure Swag proxy rules** (swag/nginx/proxy-confs/mosquitto.subdomain.conf):
+```nginx
+# For TCP MQTT (port 1883)
+upstream mosquitto_backend {
+    server mosquitto:1883;
+}
+
+server {
+    listen 8883 ssl http2;
+    listen [::]:8883 ssl http2;
+    server_name mqtt.*;
+
+    include /config/nginx/ssl.conf;
+    include /config/nginx/resolver.conf;
+
+    client_max_body_size 0;
+
+    location / {
+        proxy_pass mqtt://mosquitto_backend;
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
+```
+
+4. **Configure Swag DNS records** and SSL (via your registrar):
+```
+mqtt   A   your.public.ip
+```
+
+5. **Update Light Saber MQTT settings**:
+- Access web UI: `http://192.168.3.51`
+- Settings → MQTT
+- Broker: `mqtt.your-domain.com`
+- Port: `8883`
+- Save and restart
+
+**Note:** MQTT uses raw TCP protocol which requires special Swag configuration. WebSocket MQTT (port 9001) is easier but requires additional setup. For simple deployments, keep the Light Saber on the internal network (192.168.x.x) and only expose Home Assistant to the internet.
 
 ## Event Cycle & Synchronization
 

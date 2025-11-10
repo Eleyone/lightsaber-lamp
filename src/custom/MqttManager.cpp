@@ -35,20 +35,26 @@ void MqttManager::loadConfig() {
   _prefs->begin("mqtt", true);
   _mqttBroker = _prefs->getString("broker", "");
   _mqttPort = _prefs->getUInt("port", 1883);
+  _mqttUsername = _prefs->getString("username", "");
+  _mqttPassword = _prefs->getString("password", "");
   _prefs->end();
 
-  Serial.printf("MQTT Config loaded: broker=%s, port=%d\n", _mqttBroker.c_str(), _mqttPort);
+  Serial.printf("MQTT Config loaded: broker=%s, port=%d, user=%s\n", _mqttBroker.c_str(), _mqttPort, _mqttUsername.c_str());
 }
 
-void MqttManager::saveConfig(String broker, uint16_t port) {
+void MqttManager::saveConfig(String broker, uint16_t port, String username, String password) {
   _prefs->begin("mqtt", false);
   _prefs->putString("broker", broker);
   _prefs->putUInt("port", port);
+  _prefs->putString("username", username);
+  _prefs->putString("password", password);
   _prefs->end();
 
   _mqttBroker = broker;
   _mqttPort = port;
-  Serial.printf("MQTT Config saved: broker=%s, port=%d\n", broker.c_str(), port);
+  _mqttUsername = username;
+  _mqttPassword = password;
+  Serial.printf("MQTT Config saved: broker=%s, port=%d, user=%s\n", broker.c_str(), port, username.c_str());
 }
 
 void MqttManager::resetConfig() {
@@ -197,8 +203,11 @@ void MqttManager::loop() {
     return;
   }
 
-  // Si pas de WiFi, on sort
-  if (WiFi.status() != WL_CONNECTED) {
+  // Check if WiFi has a valid IP address
+  // Note: WiFi.status() may return confusing values for hidden networks,
+  // so we check for a valid local IP instead
+  IPAddress localIP = WiFi.localIP();
+  if (localIP == IPAddress(0, 0, 0, 0)) {
     _isConnected = false;
     return;
   }
@@ -213,7 +222,17 @@ void MqttManager::loop() {
       _lastReconnectAttempt = now;
       Serial.printf("MQTT: Attempting to connect to %s:%d\n", _mqttBroker.c_str(), _mqttPort);
 
-      if (_mqttClient->connect(_mqttClientId.c_str())) {
+      // Connect with credentials if available, otherwise connect without
+      bool connected;
+      if (!_mqttUsername.isEmpty() && !_mqttPassword.isEmpty()) {
+        Serial.printf("MQTT: Connecting with credentials (user=%s)...\n", _mqttUsername.c_str());
+        connected = _mqttClient->connect(_mqttClientId.c_str(), _mqttUsername.c_str(), _mqttPassword.c_str());
+      } else {
+        Serial.println("MQTT: Connecting without credentials...");
+        connected = _mqttClient->connect(_mqttClientId.c_str());
+      }
+
+      if (connected) {
         Serial.println("MQTT: Connected!");
         _isConnected = true;
 
@@ -225,7 +244,11 @@ void MqttManager::loop() {
         _publishDiscovery();
         publishAllStatus();
       } else {
-        Serial.printf("MQTT: Connection failed, will retry in %lu ms\n", RECONNECT_INTERVAL_MS);
+        int state = _mqttClient->state();
+        Serial.printf("MQTT: Connection failed (state=%d), will retry in %lu ms\n", state, RECONNECT_INTERVAL_MS);
+        // State codes: -4=MQTT_CONNECTION_TIMEOUT, -3=MQTT_CONNECTION_LOST, -2=MQTT_CONNECT_FAILED, -1=MQTT_DISCONNECTED, 0=MQTT_CONNECTED
+        // 1=MQTT_UNACCEPTABLE_PROTOCOL_VERSION, 2=MQTT_IDENTIFIER_REJECTED, 3=MQTT_SERVER_UNAVAILABLE, 4=MQTT_BAD_USERNAME_PASSWORD, 5=MQTT_NOT_AUTHORIZED
+        Serial.println("MQTT state meanings: -4=TIMEOUT, -3=LOST, -2=FAILED, -1=DISCONNECTED, 1=BAD_PROTOCOL, 2=ID_REJECTED, 3=SERVER_UNAVAILABLE, 4=BAD_CREDS, 5=NOT_AUTHORIZED");
       }
     }
   } else {
