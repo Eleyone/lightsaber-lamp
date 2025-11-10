@@ -1,0 +1,26 @@
+Checking light-saber > cppcheck (platform: espressif32; board: esp32doit-devkit-v1; framework: arduino)
+--------------------------------------------------------------------------------
+Tool Manager: Installing platformio/tool-cppcheck @ ~1.21100.0
+Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Tool Manager: tool-cppcheck@1.21100.230717 has been installed!
+.pio/libdeps/light-saber/ArduinoJson/src/ArduinoJson/Polyfills/preprocessor.hpp:7: [high:error] failed to expand 'ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE', Invalid ## usage when expanding 'ARDUINOJSON_CONCAT_': Unexpected token ')' [preprocessorErrorDirective]
+.pio/libdeps/light-saber/ArduinoJson/src/ArduinoJson/Polyfills/preprocessor.hpp:7: [high:error] failed to expand 'ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE', Invalid ## usage when expanding 'ARDUINOJSON_CONCAT_': Unexpected token ')' [preprocessorErrorDirective]
+.pio/libdeps/light-saber/ArduinoJson/src/ArduinoJson/Polyfills/preprocessor.hpp:7: [high:error] failed to expand 'ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE', Invalid ## usage when expanding 'ARDUINOJSON_CONCAT_': Unexpected token ')' [preprocessorErrorDirective]
+src/custom/Network.h:9: [low:style] Class 'Network' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+.pio/libdeps/light-saber/FastLED/src/fl/variant.h:215: [high:error] Cyclic reverse analysis. [cppcheckError]
+.pio/libdeps/light-saber/ArduinoJson/src/ArduinoJson/Polyfills/preprocessor.hpp:7: [high:error] failed to expand 'ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE', Invalid ## usage when expanding 'ARDUINOJSON_CONCAT_': Unexpected token ')' [preprocessorErrorDirective]
+========================= [PASSED] Took 53.55 seconds =========================
+
+Component                                                        HIGH    MEDIUM    LOW
+--------------------------------------------------------------  ------  --------  -----
+.pio/libdeps/light-saber/ArduinoJson/src/ArduinoJson/Polyfills    4        0        0
+.pio/libdeps/light-saber/FastLED/src/fl                           1        0        0
+src/custom                                                        0        0        1
+
+Total                                                             5        0        1
+
+Environment    Tool      Status    Duration
+-------------  --------  --------  ------------
+light-saber    cppcheck  PASSED    00:00:53.550
+========================= 1 succeeded in 00:00:53.550 =========================

@@ -1,0 +1,33 @@
+# Cppcheck Configuration File
+# This file configures static analysis settings for the Light Saber project
+
+# Enable all checks
+enable=all
+
+# Suppressions for known Arduino/ESP32 patterns that Cppcheck flags incorrectly
+suppress=missingIncludeSystem
+suppress=unusedFunction
+suppress=unmatchedSuppression
+suppress=preprocessorErrorDirective
+
+# C++ Standard
+std=c++17
+
+# Platform-specific defines
+-DESP32
+-DARDUINO=10819
+
+# Allow inline suppressions via comments
+inline-suppr
+
+# Performance: Check for inefficient code
+performance
+
+# Security checks
+security
+
+# Portability warnings
+portability
+
+# Style recommendations
+style

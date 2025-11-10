@@ -6,7 +6,7 @@
 class Network {
     Preferences *_prefs;
     public:
-        Network(Preferences *prefs);
+        explicit Network(Preferences *prefs);
         void initConnexion();
         bool isAccessPoint();
     private:
