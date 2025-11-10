@@ -21,6 +21,8 @@ class MqttManager {
     String _mqttClientId;
     bool _isInitialized;
     bool _isConnected;
+    unsigned long _lastReconnectAttempt = 0;
+    const unsigned long RECONNECT_INTERVAL_MS = 5000;  // 5 seconds
 
     // Helper methods
     void _setupMqtt();

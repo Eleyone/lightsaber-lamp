@@ -203,11 +203,16 @@ void MqttManager::loop() {
     return;
   }
 
-  // Connexion/reconnexion
+  // Connexion/reconnexion - using timer instead of unreliable millis() % logic
   if (!_mqttClient->connected()) {
     _isConnected = false;
-    if (millis() % 5000 < 100) { // Essayer de reconnecter tous les 5 secondes
+    unsigned long now = millis();
+
+    // Only attempt reconnection at regular intervals
+    if (now - _lastReconnectAttempt >= RECONNECT_INTERVAL_MS) {
+      _lastReconnectAttempt = now;
       Serial.printf("MQTT: Attempting to connect to %s:%d\n", _mqttBroker.c_str(), _mqttPort);
+
       if (_mqttClient->connect(_mqttClientId.c_str())) {
         Serial.println("MQTT: Connected!");
         _isConnected = true;
@@ -219,6 +224,8 @@ void MqttManager::loop() {
         // Publish discovery and status
         _publishDiscovery();
         publishAllStatus();
+      } else {
+        Serial.printf("MQTT: Connection failed, will retry in %lu ms\n", RECONNECT_INTERVAL_MS);
       }
     }
   } else {
