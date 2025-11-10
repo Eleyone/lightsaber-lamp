@@ -206,6 +206,11 @@ void setup() {
 
   mqttManager.init();
 
+  // Register callback so MQTT commands trigger WebSocket broadcasts
+  mqttManager.setOnStateChangeCallback([]() {
+    endpoint.wsBroadcastLedStatus();
+  });
+
   ledControllers[LUKE] = &FastLED.addLeds<LED_TYPE, LUKE_LED_PIN, COLOR_ORDER>(lukeLeds, NB_LED_SABER);
   ledControllers[VADER] = &FastLED.addLeds<LED_TYPE, VADER_LED_PIN, COLOR_ORDER>(vaderLeds, NB_LED_SABER);
   lukeLedStrip.initLedstrip();

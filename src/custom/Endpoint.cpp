@@ -58,16 +58,39 @@ void Endpoint::status(AsyncWebServerRequest *request) {
   AsyncResponseStream *response = request->beginResponseStream("application/json");
   response->setCode(200);
 
-  DynamicJsonDocument json = this->_getFullStatusJson();
+  // Create a fresh JSON document for status response
+  DynamicJsonDocument json(1024);
+
+  JsonObject jsonLukeLedStrip  = json.createNestedObject(_lukeLedStrip->getName());
+  jsonLukeLedStrip["state"] = _lukeLedStrip->getState();
+  jsonLukeLedStrip["color"] = Utils::getHEXColorStringFromCRGB(_lukeLedStrip->getColor());
+  jsonLukeLedStrip["brightness"] = _lukeLedStrip->getBrightness();
+
+  JsonObject jsonVaderLedStrip  = json.createNestedObject(_vaderLedStrip->getName());
+  jsonVaderLedStrip["state"] = _vaderLedStrip->getState();
+  jsonVaderLedStrip["color"] = Utils::getHEXColorStringFromCRGB(_vaderLedStrip->getColor());
+  jsonVaderLedStrip["brightness"] = _vaderLedStrip->getBrightness();
+
+  // Add MQTT status
+  if (_mqttManager) {
+    JsonObject jsonMqtt = json.createNestedObject("mqtt");
+    jsonMqtt["connected"] = _mqttManager->isConnected();
+    jsonMqtt["broker"] = _mqttManager->getMqttBroker();
+    jsonMqtt["port"] = _mqttManager->getMqttPort();
+  }
+
+  // Add WiFi status for debugging
+  JsonObject jsonWifi = json.createNestedObject("wifi");
+  jsonWifi["status"] = WiFi.status();  // 0=OFF, 1=SCANNING, 2=FAILED, 3=NO_SSID, 4=CONNECTED, 6=DISCONNECTED
+  jsonWifi["connected"] = (WiFi.status() == WL_CONNECTED);
+  jsonWifi["mode"] = WiFi.getMode();  // 1=STA, 2=AP, 3=STA+AP
+  jsonWifi["local_ip"] = WiFi.localIP().toString();
+  jsonWifi["ap_ip"] = WiFi.softAPIP().toString();
 
   Serial.println("Sending status json :");
   serializeJsonPretty(json, Serial);
 
   serializeJson(json, *response);
-
-  char   buffer[200]; // create temp buffer
-  size_t len = serializeJson(json, buffer);
-
   request->send(response);
 }
 
@@ -346,6 +369,15 @@ void Endpoint::initClientRouting()
   _server->on("/reset-mqtt-settings", HTTP_POST, [&](AsyncWebServerRequest *request){
     Serial.println("/reset-mqtt-settings: Recieving POST with no data");
     this->resetMqttConfig(request);
+  });
+  _server->on("/mqtt-discovery", HTTP_POST, [&](AsyncWebServerRequest *request){
+    Serial.println("/mqtt-discovery: Republishing MQTT discovery messages");
+    if (_mqttManager) {
+      _mqttManager->republishDiscovery();
+      this->_success(request, "MQTT discovery messages republished");
+    } else {
+      this->_error(request, "MQTT Manager not available");
+    }
   });
 }
 

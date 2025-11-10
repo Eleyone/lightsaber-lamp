@@ -3,9 +3,17 @@
 
 #include <Arduino.h>
 #include <Preferences.h>
+
+// IMPORTANT: Must be defined BEFORE including PubSubClient.h
+// Default is 256 bytes, but discovery payloads are ~630 bytes
+#define MQTT_MAX_PACKET_SIZE 1024
+
 #include <PubSubClient.h>
 #include <WiFiClient.h>
 #include "Ledstrip.h"
+
+// Callback function type for when MQTT messages change LED state
+typedef void (*MqttStateChangeCallback)();
 
 class MqttManager {
   private:
@@ -25,6 +33,9 @@ class MqttManager {
     bool _isConnected;
     unsigned long _lastReconnectAttempt = 0;
     const unsigned long RECONNECT_INTERVAL_MS = 5000;  // 5 seconds
+
+    // Callback for LED state changes from MQTT
+    MqttStateChangeCallback _onStateChangeCallback = nullptr;
 
     // Helper methods
     void _setupMqtt();
@@ -54,6 +65,7 @@ class MqttManager {
     void publishLukeStatus();
     void publishVaderStatus();
     void publishAllStatus();
+    void republishDiscovery();  // Force re-publish discovery messages
 
     // Getters
     String getMqttBroker() { return _mqttBroker; }
@@ -61,6 +73,11 @@ class MqttManager {
     String getMqttUsername() { return _mqttUsername; }
     String getMqttPassword() { return _mqttPassword; }
     bool isInitialized() { return _isInitialized; }
+
+    // Callback registration for state changes
+    void setOnStateChangeCallback(MqttStateChangeCallback callback) {
+      _onStateChangeCallback = callback;
+    }
 };
 
 #endif
