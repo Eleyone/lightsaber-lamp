@@ -3,15 +3,13 @@ module.exports = {
   content: [
     "./src/**/*.{html,js}"
   ],
-  theme: {
-    extend: {},
-  },
   darkMode: "class",
   theme: {
-      fontFamily: {
-          sans: ["Roboto", "sans-serif"],
-          body: ["Roboto", "sans-serif"],
-          mono: ["ui-monospace", "monospace"],
-      },
+    extend: {},
+    fontFamily: {
+      sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "sans-serif"],
+      body: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "sans-serif"],
+      mono: ["ui-monospace", "monospace"],
+    },
   },
 }

@@ -1,0 +1,14 @@
+{
+  "plugins": [
+    {
+      "name": "preset-default",
+      "params": {
+        "overrides": {
+          "removeUnknownAttrs": {
+            "unknownAttrs": ["@click", "x-data", "x-on", "@", "x-show"]
+          }
+        }
+      }
+    }
+  ]
+}

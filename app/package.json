@@ -4,7 +4,7 @@
   "description": "App to be able to control the LightSaber lamp",
   "scripts": {
     "start": "parcel --dist-dir build src/html/*.html",
-    "build": "parcel build src/html/*.html"
+    "build": "parcel build --no-source-maps src/html/*.html"
   },
   "keywords": [],
   "author": "",
