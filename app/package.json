@@ -1,22 +1,34 @@
 {
   "name": "light-saber_lamp_control_panel",
   "version": "1.0.0",
+  "type": "module",
   "description": "App to be able to control the LightSaber lamp",
   "scripts": {
     "start": "parcel --dist-dir build src/html/*.html",
-    "build": "parcel build --no-source-maps src/html/*.html"
+    "build": "parcel build --no-source-maps src/html/*.html",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "eslint src --ext .js,.html",
+    "lint:css": "stylelint src/**/*.css",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "autoprefixer": "^10.4.14",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "parcel": "^2.9.3",
     "parcel-namer-rewrite": "^2.0.0-rc.3",
     "parcel-transformer-google-fonts": "^0.1.4",
     "postcss": "^8.4.26",
     "posthtml-include": "^1.7.4",
     "posthtml-inline-svg": "^0.2.0",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.25.0",
     "tailwindcss": "^3.3.3"
   },
   "dependencies": {
@@ -40,10 +52,10 @@
   "posthtml": {
     "plugins": {
       "posthtml-include": {
-          "root": "./src/html"
+        "root": "./src/html"
       },
       "posthtml-inline-svg": {
-          "cwd": "./src/img"
+        "cwd": "./src/img"
       }
     }
   },

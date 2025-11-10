@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Light Saber Lamp - Compagnion app</title>
-        <link rel="icon" type="image/png" href="../img/favicon.png">
+        <link rel="icon" type="image/png" href="../img/favicon.png" />
         <link rel="stylesheet" href="../css/app.css" />
         <script defer type="module" src="../js/app.js" />
     </head>
@@ -21,34 +21,79 @@
         <main>
             <include src="components/notifs.html"></include>
             <!-- This will be our grid wrapper -->
-            <form x-data x-on:submit.prevent="$store.endpoints.saveWifiConfig($formData)" class="novalidate group">
+            <form
+                x-data
+                x-on:submit.prevent="$store.endpoints.saveWifiConfig($formData)"
+                class="novalidate group"
+            >
                 <div class="space-y-12 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     <div class="border-b border-gray-900/10 pb-12">
-                        <p class="mt-1 text-sm leading-6 text-gray-600">Enter the wifi network configuration where the table will connect.</p>
+                        <p class="mt-1 text-sm leading-6 text-gray-600">
+                            Enter the wifi network configuration where the table will connect.
+                        </p>
                         <div class="mt-10 gap-x-6 gap-y-8">
                             <div>
-                                <label for="ssid" class="block text-sm font-medium leading-6 text-gray-900">WiFi Network SSID:</label>
+                                <label
+                                    for="ssid"
+                                    class="block text-sm font-medium leading-6 text-gray-900"
+                                    >WiFi Network SSID:</label
+                                >
                                 <div class="mt-2">
-                                    <input type="text"id="ssid" name="ssid" placeholder="" required pattern="[^&quot;\t\s!#;+\]\/][^&quot;\t\s+\]\/]{0,31}"
-                                    class="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500 peer"/>
-                                    <span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                                    <input
+                                        type="text"
+                                        id="ssid"
+                                        name="ssid"
+                                        placeholder=""
+                                        required
+                                        pattern='[^"\t\s!#;+\]\/][^"\t\s+\]\/]{0,31}'
+                                        class="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 invalid:ring-2 invalid:ring-inset invalid:[&:not(:placeholder-shown):not(:focus)]:ring-red-500 peer"
+                                    />
+                                    <span
+                                        class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block"
+                                    >
                                         Please enter a valid SSID
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <label for="pwd" class="block text-sm font-medium leading-6 text-gray-900">WiFi Network Password:</label>
-                                <div class="mt-2 relative flex items-center" x-data="{ show: false }" x-clock>
-                                    <input :type="(show) ? 'text' : 'password'" id="pwd" name="pwd" placeholder="" class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
-                                    <span class="absolute right-2 bg-transparent flex items-center justify-center hover:text-blue-600" @click="show = !show">
-                                        <icon src="icons/showpass.svg" x-show="!show" class="w-5 h-5"></icon>
-                                        <icon src="icons/hidepass.svg" x-show="show" class="w-5 h-5" style="display: none;"></icon>
+                                <label
+                                    for="pwd"
+                                    class="block text-sm font-medium leading-6 text-gray-900"
+                                    >WiFi Network Password:</label
+                                >
+                                <div
+                                    class="mt-2 relative flex items-center"
+                                    x-data="{ show: false }"
+                                    x-clock
+                                >
+                                    <input
+                                        :type="(show) ? 'text' : 'password'"
+                                        id="pwd"
+                                        name="pwd"
+                                        placeholder=""
+                                        class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    />
+                                    <span
+                                        class="absolute right-2 bg-transparent flex items-center justify-center hover:text-blue-600"
+                                        @click="show = !show"
+                                    >
+                                        <icon
+                                            src="icons/showpass.svg"
+                                            x-show="!show"
+                                            class="w-5 h-5"
+                                        ></icon>
+                                        <icon
+                                            src="icons/hidepass.svg"
+                                            x-show="show"
+                                            class="w-5 h-5"
+                                            style="display: none"
+                                        ></icon>
                                     </span>
                                 </div>
                             </div>
                             <div class="mt-6 flex items-center justify-center gap-x-6">
-                                <button 
-                                class="bg-blue-900 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none group-invalid:pointer-events-none group-invalid:opacity-30" 
+                                <button
+                                    class="bg-blue-900 text-white px-4 py-2 m-1 rounded no-outline focus:shadow-outline select-none group-invalid:pointer-events-none group-invalid:opacity-30"
                                 >
                                     Save
                                 </button>

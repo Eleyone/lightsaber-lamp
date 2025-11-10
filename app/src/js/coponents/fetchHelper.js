@@ -12,8 +12,8 @@ export async function fetchWithNotif(url, options = {}) {
             ...(body && { body }),
             headers: {
                 ...(body && { 'Content-type': 'application/json; charset=UTF-8' }),
-                ...options.headers,
-            },
+                ...options.headers
+            }
         });
 
         if (!response.ok) {
@@ -22,14 +22,14 @@ export async function fetchWithNotif(url, options = {}) {
         }
 
         const data = await response.json();
-        console.log('Success:', data);
+        console.warn('Success:', data);
 
         Alpine.store('notifs').text = data.message;
         Alpine.store('notifs').code = 'success';
 
         return data;
     } catch (error) {
-        console.error('Error:', error);
+        console.warn('Error:', error);
         Alpine.store('notifs').text = error.message;
         Alpine.store('notifs').code = 'error';
         throw error;

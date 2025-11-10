@@ -3,6 +3,6 @@ export default {
     text: '',
     code: '',
     toggle() {
-        this.open = ! this.open
+        this.open = !this.open;
     }
 };

@@ -13,4 +13,4 @@ export default {
     resetNetworkConfig() {
         fetchWithNotif('/reset-network-settings');
     }
-}
+};

@@ -1,48 +1,79 @@
 <div>
-    <div x-data="vaderLedCtrl" @wschanged.window.debounce="handleWsChangeEvent($event)" class="h-full py-8 px-6 space-y-6 rounded-xl border border-gray-200 bg-white">
+    <div
+        x-data="vaderLedCtrl"
+        @wschanged.window.debounce="handleWsChangeEvent($event)"
+        class="h-full py-8 px-6 space-y-6 rounded-xl border border-gray-200 bg-white"
+    >
         <h5 class="text-xl text-gray-600 text-center">Vader Saber</h5>
         <div class="mt-2 gap-4 flex">
-            <label :for="`${id}_state`" class="block w-4/5 text-sm font-medium leading-6 text-gray-900">Light</label>
+            <label
+                :for="`${id}_state`"
+                class="block w-4/5 text-sm font-medium leading-6 text-gray-900"
+                >Light</label
+            >
             <div class="w-1/5 flew-none">
-                <div class="relative rounded-full w-12 h-6 transition duration-200 ease-linear"
-                    :class="[state === true ? 'bg-green-400' : 'bg-gray-400']">
-                    <label :for="`${id}_state`"
+                <div
+                    class="relative rounded-full w-12 h-6 transition duration-200 ease-linear"
+                    :class="[state === true ? 'bg-green-400' : 'bg-gray-400']"
+                >
+                    <label
+                        :for="`${id}_state`"
                         class="absolute left-0 bg-white border-2 mb-2 w-6 h-6 rounded-full transition transform duration-100 ease-linear cursor-pointer"
-                        :class="[state === true ? 'translate-x-full border-green-400' : 'translate-x-0 border-gray-400']"></label>
-                    <input type="checkbox" :id="`${id}_state`" :name="`${id}[state]`"
+                        :class="[state === true ? 'translate-x-full border-green-400' : 'translate-x-0 border-gray-400']"
+                    ></label>
+                    <input
+                        type="checkbox"
+                        :id="`${id}_state`"
+                        :name="`${id}[state]`"
                         class="appearance-none w-full h-full active:outline-none focus:outline-none"
-                        @click="state === false ? state = true : state = false"/>
+                        @click="state === false ? state = true : state = false"
+                    />
                 </div>
             </div>
         </div>
         <div class="mt-2 flex">
-            <label :for="`${id}_color`" class="w-full text-sm font-medium leading-6 text-gray-900">Select Color</label>    
+            <label :for="`${id}_color`" class="w-full text-sm font-medium leading-6 text-gray-900"
+                >Select Color</label
+            >
         </div>
         <div class="gap-4 flex items-center !mt-0">
-            <input :id="`${id}_color`" :name="`${id}[color]`" type="text" placeholder="Pick a color"
+            <input
+                :id="`${id}_color`"
+                :name="`${id}[color]`"
+                type="text"
+                placeholder="Pick a color"
                 class="border border-transparent shadow w-3/4 px-4 py-2 leading-normal text-gray-700 bg-white rounded-md focus:outline-none focus:shadow-outline"
-                readonly 
-                x-model="color"/>
+                readonly
+                x-model="color"
+            />
             <div class="w-1/4 px-4 py-2 leading-normal">
-                <button type="button" @click="colorpickerIsOpen = !colorpickerIsOpen" 
+                <button
+                    type="button"
+                    @click="colorpickerIsOpen = !colorpickerIsOpen"
                     class="w-8 h-8 rounded-full focus:outline-none focus:shadow-outline inline-flex p-1 shadow"
                     :style="`background: ${color}; color: white`"
                 >
-                    <icon src="icons/colorpicker.svg" class="w-6 h-6 fill-current"></icon> 
+                    <icon src="icons/colorpicker.svg" class="w-6 h-6 fill-current"></icon>
                 </button>
             </div>
         </div>
         <div class="relative ml-3 mt-8">
-            <div x-show="colorpickerIsOpen" @click.away="colorpickerIsOpen = false" x-transition:enter="transition ease-out duration-100 transform"
-                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            <div
+                x-show="colorpickerIsOpen"
+                @click.away="colorpickerIsOpen = false"
+                x-transition:enter="transition ease-out duration-100 transform"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-75 transform"
-                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg z-40">
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg z-40"
+            >
                 <div class="rounded-md bg-white shadow-xs px-4 py-3">
                     <div class="flex flex-wrap -mx-2">
                         <template x-for="(colorChoice, index) in $store.colors" :key="index">
                             <div class="px-2">
-                                <template x-if="color === colorChoice">	
+                                <template x-if="color === colorChoice">
                                     <div
                                         class="w-8 h-8 inline-flex rounded-full cursor-pointer border-4 border-white"
                                         :style="`background: ${colorChoice}; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);`"
@@ -54,7 +85,7 @@
                                         @keydown.enter="color = colorChoice"
                                         role="checkbox"
                                         tabindex="0"
-                                        :aria-checked="color"	
+                                        :aria-checked="color"
                                         class="w-8 h-8 inline-flex rounded-full cursor-pointer border-4 border-white focus:outline-none focus:shadow-outline"
                                         :style="`background: ${colorChoice};`"
                                     ></div>
@@ -66,24 +97,32 @@
             </div>
         </div>
         <div class="mt-2 gap-4r">
-            <label class="block w-full text-sm font-medium leading-6 text-gray-900">Brightness</label>
+            <label class="block w-full text-sm font-medium leading-6 text-gray-900"
+                >Brightness</label
+            >
             <div class="x-slider flex relative my-3">
                 <!-- Player Slider -->
                 <div class="x-slider inline justify-center rounded-md">
                     <!-- Range Input -->
-                    <input class="absolute bg-transparent rounded-md
-                        z-10 h-1 w-full outline-0 appearance-none" type="range"
-                        step="1" min='0' max="100" :value="`${brightness}`"
+                    <input
+                        class="absolute bg-transparent rounded-md z-10 h-1 w-full outline-0 appearance-none"
+                        type="range"
+                        step="1"
+                        min="0"
+                        max="100"
+                        :value="`${brightness}`"
                         x-model="brightness"
-                        x-on:change.debounce="brightness">
+                        x-on:change.debounce="brightness"
+                    />
 
                     <!-- Slider Placeholder -->
                     <div class="absolute z-0 w-full h-0.5 mt-0.5 rounded-md bg-gray-500/70"></div>
 
                     <!-- Progress -->
-                    <div class="absolute z-0 w-full h-1.5 rounded-md bg-green-600
-                        bg-gradient-to-r from-emerald-700 to-green-500"
-                        x-bind:style="'width: {brightness}% !important; '"></div>
+                    <div
+                        class="absolute z-0 w-full h-1.5 rounded-md bg-green-600 bg-gradient-to-r from-emerald-700 to-green-500"
+                        x-bind:style="'width: {brightness}% !important; '"
+                    ></div>
                 </div>
             </div>
             <div class="flex flex-row flex-grow justify-center px-0.5">
