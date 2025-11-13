@@ -23,6 +23,12 @@
                         </span>
                     </div>
                     <div class="flex items-center md:ml-6 ml-4">
+                        <span @click=$store.versionModal.toggle() class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
+                            <span class=sr-only>Version Information</span>
+                            <svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><path d="M12 16v-4m0-4h.01"/></svg>
+                        </span>
+                    </div>
+                    <div class="flex items-center md:ml-6 ml-4">
                         <span @click="$store.settings.open = true" class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
                             <span class=sr-only>Configuration</span>
                             <svg fill=none stroke=currentColor stroke-width=1.5 class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87q.11.06.22.127c.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a7 7 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a7 7 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a7 7 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a7 7 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124q.108-.066.22-.128c.332-.183.582-.495.644-.869Z"/><path stroke-linecap=round stroke-linejoin=round d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/></svg>
@@ -422,6 +428,52 @@
         </div>
     </div>
 </div>
+
+            <div x-data=versionModal() x-show=$store.versionModal.open class="absolute bg-gray-700 bg-opacity-50 flex inset-0 items-center justify-center z-50" @load.window=init()>
+    <div class="bg-white max-w-md rounded-lg shadow-xl">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl text-white">
+            <h2 class="font-semibold text-xl">Version Information</h2>
+            <svg fill=none stroke=currentColor class="cursor-pointer h-6 hover:text-gray-400 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M6 18 18 6M6 6l12 12"/></svg>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <div class="border-b pb-4">
+                <h3 class="font-medium mb-2 text-gray-500 text-sm tracking-wide uppercase">Firmware</h3>
+                <p class="font-bold text-2xl text-gray-900" x-text="firmware || 'Loading...'"></p>
+                <p class="mt-1 text-gray-500 text-xs" x-text="firmwareBuildDate || '—'"></p>
+                <p class="mt-1 text-gray-500 text-xs">
+                    Commit: <span class=font-mono x-text="commitHash || '—'"></span>
+                </p>
+            </div>
+
+            
+            <div class="border-b pb-4">
+                <h3 class="font-medium mb-2 text-gray-500 text-sm tracking-wide uppercase">Web App</h3>
+                <p class="font-bold text-2xl text-gray-900" x-text="app || 'Loading...'"></p>
+                <p class="mt-1 text-gray-500 text-xs" x-text="appBuildDate || '—'"></p>
+            </div>
+
+            
+            <div>
+                <h3 class="font-medium mb-2 text-gray-500 text-sm tracking-wide uppercase">Device</h3>
+                <p class="text-gray-900 text-sm">LightSaber Lamp ESP32</p>
+                <p class="mt-1 text-gray-500 text-xs" x-text="wifiStatus || '—'"></p>
+            </div>
+
+            
+            <div x-show=error class="bg-red-50 border border-red-200 px-4 py-3 rounded text-red-700 text-sm" style=display:none x-text=error></div>
+        </div>
+
+        <div class="bg-gray-50 flex justify-end px-6 py-4 rounded-b-lg">
+            <button class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-white transition" @click=$store.versionModal.toggle()>
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>function versionModal(){return{firmware:null,app:null,firmwareBuildDate:null,appBuildDate:null,commitHash:null,wifiStatus:null,error:null,async init(){try{let i=await fetch("/api/version"),t=await i.json();this.firmware=t.firmware,this.firmwareBuildDate=`Built: ${t.build_date}`,this.commitHash=t.commit_hash;let a=await fetch("/version.json"),e=await a.json();this.app=e.app,this.appBuildDate=`Built: ${new Date(e.buildDate).toLocaleString()}`;let n=await fetch("/status"),o=await n.json();o.wifi&&o.wifi.connected?this.wifiStatus=`Connected to: ${o.wifi.local_ip}`:this.wifiStatus="WiFi: Disconnected"}catch(i){console.error("Error loading version information:",i),this.error="Could not load version information"}}}}</script>
 
         </main>
         <footer class="bg-gray-800 mt-4">

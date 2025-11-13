@@ -5,7 +5,7 @@
 /**-- VERSION MANAGEMENT --*/
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
-#define VERSION_PATCH 6
+#define VERSION_PATCH 7
 
 // Build date and time captured at compile time
 #define BUILD_DATE __DATE__

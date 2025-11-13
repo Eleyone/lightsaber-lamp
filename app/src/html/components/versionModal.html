@@ -1,0 +1,103 @@
+<div
+    x-data="versionModal()"
+    x-show="$store.versionModal.open"
+    class="absolute inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50"
+    @load.window="init()"
+>
+    <div class="max-w-md bg-white rounded-lg shadow-xl">
+        <div class="bg-gray-800 text-white p-4 shadow-xl flex items-center justify-between rounded-t-lg">
+            <h2 class="text-xl font-semibold">Version Information</h2>
+            <icon
+                src="icons/close.svg"
+                class="w-6 h-6 cursor-pointer hover:text-gray-400"
+                @click="$store.versionModal.toggle()"
+            ></icon>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <!-- Firmware Version -->
+            <div class="border-b pb-4">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Firmware</h3>
+                <p class="text-2xl font-bold text-gray-900" x-text="firmware || 'Loading...'"></p>
+                <p class="text-xs text-gray-500 mt-1" x-text="firmwareBuildDate || '—'"></p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Commit: <span class="font-mono" x-text="commitHash || '—'"></span>
+                </p>
+            </div>
+
+            <!-- Web App Version -->
+            <div class="border-b pb-4">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Web App</h3>
+                <p class="text-2xl font-bold text-gray-900" x-text="app || 'Loading...'"></p>
+                <p class="text-xs text-gray-500 mt-1" x-text="appBuildDate || '—'"></p>
+            </div>
+
+            <!-- Device Info -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Device</h3>
+                <p class="text-sm text-gray-900">LightSaber Lamp ESP32</p>
+                <p class="text-xs text-gray-500 mt-1" x-text="wifiStatus || '—'"></p>
+            </div>
+
+            <!-- Error State -->
+            <div
+                x-show="error"
+                class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm"
+                style="display: none"
+                x-text="error"
+            ></div>
+        </div>
+
+        <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end">
+            <button
+                class="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 transition"
+                @click="$store.versionModal.toggle()"
+            >
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function versionModal() {
+    return {
+        firmware: null,
+        app: null,
+        firmwareBuildDate: null,
+        appBuildDate: null,
+        commitHash: null,
+        wifiStatus: null,
+        error: null,
+
+        async init() {
+            try {
+                // Fetch firmware version and commit hash
+                const fwResponse = await fetch('/api/version');
+                const fwData = await fwResponse.json();
+                this.firmware = fwData.firmware;
+                this.firmwareBuildDate = `Built: ${fwData.build_date}`;
+                this.commitHash = fwData.commit_hash;
+
+                // Fetch app version
+                const appResponse = await fetch('/version.json');
+                const appData = await appResponse.json();
+                this.app = appData.app;
+                this.appBuildDate = `Built: ${new Date(appData.buildDate).toLocaleString()}`;
+
+                // Fetch WiFi status
+                const statusResponse = await fetch('/status');
+                const statusData = await statusResponse.json();
+                if (statusData.wifi && statusData.wifi.connected) {
+                    this.wifiStatus = `Connected to: ${statusData.wifi.local_ip}`;
+                } else {
+                    this.wifiStatus = 'WiFi: Disconnected';
+                }
+            } catch (err) {
+                console.error('Error loading version information:', err);
+                this.error = 'Could not load version information';
+            }
+        }
+    };
+}
+</script>

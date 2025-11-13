@@ -58,6 +58,13 @@ Alpine.store('settings', {
     }
 });
 
+Alpine.store('versionModal', {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+    }
+});
+
 Alpine.data('lukeLedCtrl', () => createLedController('luke_strip', '#FF00AA'));
 Alpine.data('vaderLedCtrl', () => createLedController('vader_strip', '#00EAFF'));
 
