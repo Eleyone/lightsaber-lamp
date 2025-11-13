@@ -74,6 +74,8 @@ curl http://device-ip/version.json
 
 ### Updating Firmware and App
 
+#### Automatic OTA Update (Recommended)
+
 Use the provided `UPDATE_OTA.sh` script for automatic OTA updates:
 
 ```bash
@@ -90,6 +92,80 @@ The script will:
 3. Upload firmware via OTA
 4. Wait for device restart
 5. Display the new versions after update
+
+#### Manual OTA Update
+
+If you prefer to update manually or the script doesn't work, follow these steps:
+
+**Prerequisites:**
+- Device must be powered on and connected to WiFi
+- Device IP address (find it in your router's admin panel)
+- The device is accessible on the network at `http://<device-ip>`
+
+**Step 1: Build the firmware with updated app**
+
+```bash
+# Navigate to the project root
+cd /path/to/light-saber
+
+# Build the web app
+cd app
+npm install
+npm run build
+cd ..
+
+# Build the LittleFS filesystem with the web app
+pio run --target buildfs --environment light-saber
+
+# Build the firmware
+pio run --environment light-saber
+```
+
+**Step 2: Upload via OTA using curl**
+
+```bash
+# From the project root directory, run:
+timeout 60 curl -F "filedata=@.pio/build/light-saber/firmware.bin" \
+  http://<device-ip>/update
+
+# Replace <device-ip> with your device's IP (e.g., 192.168.3.51)
+```
+
+**Expected output:**
+- The LED should flash (device is rebooting)
+- Wait 10-15 seconds for the device to restart
+- Connection should resume automatically
+
+**Step 3: Verify the update**
+
+```bash
+# Check the new version
+curl http://<device-ip>/api/version
+
+# Expected response:
+# {
+#   "firmware": "X.Y.Z",
+#   "build_date": "Month DD YYYY HH:MM:SS"
+# }
+```
+
+**Troubleshooting:**
+
+| Issue | Solution |
+|-------|----------|
+| Connection timeout | Check device IP, ensure device is powered on and connected to WiFi |
+| 500 Internal Server Error | Device may still be rebooting, wait 30 seconds and try again |
+| Upload stuck | Press the reset button on the device and retry |
+| Device unresponsive after upload | Power cycle the device (turn off/on) and check serial monitor for errors |
+
+**Via Web Browser (Alternative method):**
+
+If curl is not available, you can also upload via the web interface:
+
+1. Open `http://<device-ip>` in your browser
+2. Navigate to the firmware update section (if available in your build)
+3. Select the firmware file: `.pio/build/light-saber/firmware.bin`
+4. Click upload and wait for the device to restart
 
 ### Version Numbering
 
