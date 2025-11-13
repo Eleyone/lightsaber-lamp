@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include "../Config.h"
+#include "../GitVersion.h"
 #include "Ledstrip.h"
 #include "Endpoint.h"
 #include "MqttManager.h"
@@ -101,6 +102,7 @@ void Endpoint::version(AsyncWebServerRequest *request) {
   DynamicJsonDocument json(512);
   json["firmware"] = VERSION_STRING;
   json["build_date"] = BUILD_DATE_TIME;
+  json["commit_hash"] = GIT_COMMIT_HASH;
 
   serializeJson(json, *response);
   request->send(response);
