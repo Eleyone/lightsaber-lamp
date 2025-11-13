@@ -4,6 +4,7 @@ import color from './coponents/color.js';
 import notifs from './coponents/notifs.js';
 import websocket from './coponents/websocket.js';
 import endpoints from './coponents/endpoint.js';
+import mqtt from './coponents/mqtt.js';
 import { createLedController } from './coponents/ledController.js';
 
 window.Alpine = Alpine;
@@ -65,7 +66,14 @@ Alpine.store('versionModal', {
     }
 });
 
+Alpine.store('mqtt', {
+    connected: null // null = unknown, true = connected, false = disconnected
+});
+
 Alpine.data('lukeLedCtrl', () => createLedController('luke_strip', '#FF00AA'));
 Alpine.data('vaderLedCtrl', () => createLedController('vader_strip', '#00EAFF'));
 
 Alpine.start();
+
+// Initialize MQTT status monitoring
+mqtt.init();
