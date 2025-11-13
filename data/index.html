@@ -16,6 +16,14 @@
             </div>
             <div class=md:block>
                 <div class="flex items-center">
+                    
+                    <div x-data class="flex items-center md:ml-6 ml-4">
+                        <span class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white p-1 rounded-full" :class="[$store.mqtt.connected === true ? 'text-green-400' : ($store.mqtt.connected === false ? 'text-red-400' : 'text-gray-400')]" :title="$store.mqtt.connected === true ? 'MQTT Connected' : ($store.mqtt.connected === false ? 'MQTT Disconnected' : 'MQTT Status Unknown')">
+                            <span class=sr-only>MQTT status</span>
+                            <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=8 class="h-6 w-6" viewBox="0 0 320 320"><path d="M7.1 180.6v117.1c0 8.4 6.8 15.3 15.3 15.3H142c-1-73.2-61.1-132.3-134.9-132.4M7.1 84.1v49.8c99 .9 179.4 80.7 180.4 179.1h51.7C238.2 186.6 134.5 84.2 7.1 84.1M312.9 297.6V193.5C278.1 107.2 207.3 38.9 119 7.1H22.4C14 7.1 7.1 13.9 7.1 22.4v15c152.6.9 276.6 124 277.6 275.6h13c8.4-.1 15.2-6.9 15.2-15.4M272.6 49.8c14.5 14.4 28.6 31.7 40.4 47.8V22.4c0-8.4-6.8-15.3-15.3-15.3h-77.3c18 12.6 36.2 26.8 52.2 42.7"/></svg>
+                        </span>
+                    </div>
+                    
                     <div x-data class="flex items-center md:ml-6 ml-4">
                         <span @click=$store.websocket.init() class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full" :class="[$store.websocket.state === true ? 'text-green-400' : 'text-red-400']">
                             <span class=sr-only>Websocket status</span>
@@ -28,11 +36,29 @@
                             <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><line x1=12 x2=12 y1=16 y2=12 /><line x1=12 x2=12.01 y1=8 y2=8 /></svg>
                         </span>
                     </div>
-                    <div class="flex items-center md:ml-6 ml-4">
-                        <span @click="$store.settings.open = true" class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
+                    
+                    <div x-data="{ open: false }" class="dropdown dropdown-end flex items-center md:ml-6 ml-4 relative">
+                        <button @click="open = !open" class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
                             <span class=sr-only>Configuration</span>
                             <svg fill=none stroke=currentColor stroke-width=1.5 class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87q.11.06.22.127c.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a7 7 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a7 7 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a7 7 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a7 7 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124q.108-.066.22-.128c.332-.183.582-.495.644-.869Z"/><path stroke-linecap=round stroke-linejoin=round d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/></svg>
-                        </span>
+                        </button>
+                        <div x-show=open @click.outside="open = false" class="absolute bg-white mt-2 right-0 rounded-lg shadow-lg w-48 z-50" style=display:none;top:100%>
+                            <div class=py-2>
+                                <button @click="$store.wifiSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    WiFi Configuration
+                                </button>
+                                <button @click="$store.networkSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    Network Configuration
+                                </button>
+                                <button @click="$store.mqttSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    MQTT Configuration
+                                </button>
+                                <hr class=my-1>
+                                <button @click="window.open('/update', '_blank'); open = false" class="hover:bg-green-50 px-4 py-2 text-green-600 text-left text-sm transition w-full">
+                                    Firmware Update
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,131 +216,47 @@
                     </div>
                 </div>
             </form>
-            <div class="absolute flex h-full items-center justify-center left-0 top-0 w-full z-40" style=background-color:#00000080 x-show=$store.settings.open>
-    <div class=rounded>
-        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t shadow-xl text-center text-white">
-            <h2 class=text-2xl>Settings</h2>
-            <svg fill=none stroke=currentColor class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M6 18 18 6M6 6l12 12"/></svg>
+            
+<div class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-40" x-show=$store.wifiSettingsModal.open>
+    <div class="bg-white max-h-[90vh] max-w-2xl overflow-y-auto rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl sticky text-white top-0">
+            <h2 class="font-semibold sm:text-2xl text-xl">WiFi Configuration</h2>
+            <button type=button @click=$store.wifiSettingsModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
         </div>
-        <div class="bg-white h-auto p-4 rounded-b shadow-xl text-center" @click.away=$store.settings.toggle()>
+        <div class="bg-white p-4 sm:p-6">
             <form x-data x-on:submit.prevent=$store.endpoints.saveWifiConfig($formData) class="group novalidate">
-                <div class=mt-2>
-                    <p class="border-b border-gray-900/10 leading-6 mt-1 pb-2 text-gray-600 text-xl">
-                        WiFi configuration
-                    </p>
-                    <div class="gap-x-1 gap-y-1 grid grid-cols-1 mt-2">
-                        <div class=col-span-full>
-                            <label for=ssid class="block font-medium leading-6 text-gray-900 text-sm">WiFi Network SSID:</label>
-                            <div class=mt-2>
-                                <input id=ssid name=ssid placeholder required pattern="[^&quot;\t\s!#;+\]\/][^&quot;\t\s+\]\/]{0,31}" class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset invalid:[&amp;:not(:placeholder-shown):not(:focus)]:ring-red-500 invalid:ring-2 invalid:ring-inset peer placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="hidden mt-2 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
-                                    Please enter a valid SSID
-                                </span>
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=pwd class="block font-medium leading-6 text-gray-900 text-sm">WiFi Network Password:</label>
-                            <div class="flex items-center mt-2 relative" x-data="{ show: false }" x-clock>
-                                <input :type="(show) ? 'text' : 'password'" id=pwd name=pwd placeholder class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="absolute bg-transparent flex hover:text-blue-600 items-center justify-center right-2" @click="show = !show">
-                                    <svg fill=none stroke=currentColor class="h-5 w-5" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 8.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88 6.59 6.59m7.532 7.532 3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21"/></svg>
-                                    <svg fill=none stroke=currentColor class="h-5 w-5" style=display:none viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7"/></svg>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-center mt-4">
-                    <span class="bg-gray-700 focus:shadow-outline m-1 no-outline px-4 py-2 rounded select-none text-white" @click=$store.wifiModal.toggle()>Reset</span>
-                    <button class="bg-blue-900 focus:shadow-outline group-invalid:opacity-30 group-invalid:pointer-events-none m-1 no-outline px-4 py-2 rounded select-none text-white" @click=$store.settings.toggle()>
-                        Save
-                    </button>
-                </div>
-            </form>
-            <form x-data x-on:submit.prevent=$store.endpoints.saveNetworkConfig($formData) class="group novalidate">
-                <div class=mt-4>
-                    <p class="border-b border-gray-900/10 leading-6 mt-1 pb-2 text-gray-600 text-xl">
-                        Network configuration
-                    </p>
-                    <div class="gap-x-1 gap-y-1 grid grid-cols-1 mt-2">
-                        <div class=col-span-full>
-                            <label for=ip class="block font-medium leading-6 text-gray-900 text-sm">Static IP</label>
-                            <div class=mt-2>
-                                <input id=ip name=ip placeholder=192.168.1.1 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="block border-0 focus:ring-2 focus:ring-indigo-00 focus:ring-inset invalid:[&amp;:not(:placeholder-shown):not(:focus)]:ring-red-500 invalid:ring-2 invalid:ring-inset peer placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="hidden mt-2 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
-                                    Please enter a valid IP address
-                                </span>
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=subnet class="block font-medium leading-6 text-gray-900 text-sm">Subnet</label>
-                            <div class=mt-2>
-                                <input id=subnet name=subnet placeholder=255.255.255.0 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="block border-0 focus:ring-2 focus:ring-indigo-500 focus:ring-inset invalid:[&amp;:not(:placeholder-shown):not(:focus)]:ring-red-500 invalid:ring-2 invalid:ring-inset peer placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="hidden mt-2 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
-                                    Please enter a valid IP address
-                                </span>
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=gateway class="block font-medium leading-6 text-gray-900 text-sm">Gateway</label>
-                            <div class=mt-2>
-                                <input id=gateway name=gateway placeholder=192.168.1.1 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset invalid:[&amp;:not(:placeholder-shown):not(:focus)]:ring-red-500 invalid:ring-2 invalid:ring-inset peer placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                            </div>
-                            <span class="hidden mt-2 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
-                                Please enter a valid IP address
+                <div class=space-y-4>
+                    <div>
+                        <label for=ssid class="block font-medium text-gray-700 text-sm">
+                            WiFi Network SSID:
+                        </label>
+                        <div class=mt-1>
+                            <input id=ssid name=ssid placeholder="Network name" required pattern="[^&quot;\t\s!#;+\]\/][^&quot;\t\s+\]\/]{0,31}" class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 invalid:border-red-500 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                            <span class="hidden mt-1 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
+                                Please enter a valid SSID
                             </span>
                         </div>
                     </div>
-                </div>
-                <div class="flex justify-center mt-4">
-                    <span class="bg-gray-700 focus:shadow-outline m-1 no-outline px-4 py-2 rounded select-none text-white" @click=$store.networkModal.toggle()>Reset</span>
-                    <button class="bg-blue-900 focus:shadow-outline group-invalid:opacity-30 group-invalid:pointer-events-none m-1 no-outline px-4 py-2 rounded select-none text-white" @click=$store.settings.toggle()>
-                        Save
-                    </button>
-                </div>
-            </form>
-            <form x-data x-on:submit.prevent=$store.endpoints.saveMqttConfig($formData) class="group novalidate">
-                <div class=mt-4>
-                    <p class="border-b border-gray-900/10 leading-6 mt-1 pb-2 text-gray-600 text-xl">
-                        MQTT configuration
-                    </p>
-                    <div class="gap-x-1 gap-y-1 grid grid-cols-1 mt-2">
-                        <div class=col-span-full>
-                            <label for=mqtt_server class="block font-medium leading-6 text-gray-900 text-sm">MQTT Server</label>
-                            <div class=mt-2>
-                                <input id=mqtt_server name=mqtt_server placeholder=192.168.1.100 class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=mqtt_port class="block font-medium leading-6 text-gray-900 text-sm">MQTT Port</label>
-                            <div class=mt-2>
-                                <input type=number id=mqtt_port name=mqtt_port placeholder=1883 min=1 max=65535 class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset invalid:[&amp;:not(:placeholder-shown):not(:focus)]:ring-red-500 invalid:ring-2 invalid:ring-inset peer placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="hidden mt-2 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
-                                    Please enter a valid port (1-65535)
-                                </span>
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=mqtt_user class="block font-medium leading-6 text-gray-900 text-sm">MQTT Username</label>
-                            <div class=mt-2>
-                                <input id=mqtt_user name=mqtt_user placeholder=username class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                            </div>
-                        </div>
-                        <div class=col-span-full>
-                            <label for=mqtt_pass class="block font-medium leading-6 text-gray-900 text-sm">MQTT Password</label>
-                            <div class="flex items-center mt-2 relative" x-data="{ show: false }">
-                                <input :type="(show) ? 'text' : 'password'" id=mqtt_pass name=mqtt_pass placeholder class="block border-0 focus:ring-2 focus:ring-indigo-600 focus:ring-inset placeholder:text-gray-400 px-1.5 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-sm sm:leading-6 sm:text-sm text-gray-900 w-full">
-                                <span class="absolute bg-transparent flex hover:text-blue-600 items-center justify-center right-2" @click="show = !show">
-                                    <svg fill=none stroke=currentColor class="h-5 w-5" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 8.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88 6.59 6.59m7.532 7.532 3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21"/></svg>
-                                    <svg fill=none stroke=currentColor class="h-5 w-5" style=display:none viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7"/></svg>
-                                </span>
-                            </div>
+                    <div>
+                        <label for=pwd class="block font-medium text-gray-700 text-sm">
+                            WiFi Network Password:
+                        </label>
+                        <div class="flex items-center mt-1 relative" x-data="{ show: false }">
+                            <input :type="show ? 'text' : 'password'" id=pwd name=pwd placeholder=Password class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                            <button type=button @click="show = !show" class="absolute hover:text-gray-700 right-3 text-gray-500" tabindex=-1>
+                                <svg fill=none stroke=currentColor class="h-5 w-5" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7"/></svg>
+                                <svg fill=none stroke=currentColor class="h-5 w-5" style=display:none viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 9.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88 6.59 6.59m7.532 7.532 3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-center mt-4">
-                    <span class="bg-gray-700 focus:shadow-outline m-1 no-outline px-4 py-2 rounded select-none text-white" @click=$store.mqttModal.toggle()>Reset</span>
-                    <button @click="console.log('MQTT Save clicked', this.form)" class="bg-blue-900 focus:shadow-outline group-invalid:opacity-30 group-invalid:pointer-events-none m-1 no-outline px-4 py-2 rounded select-none text-white">
+                <div class="flex flex-wrap gap-2 justify-end mt-6">
+                    <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.wifiModal.toggle()>
+                        Reset
+                    </button>
+                    <button class="bg-blue-900 group-invalid:opacity-50 group-invalid:pointer-events-none hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.wifiSettingsModal.toggle()>
                         Save
                     </button>
                 </div>
@@ -322,58 +264,190 @@
         </div>
     </div>
 </div>
-<div x-data x-show=$store.wifiModal.open class="absolute bg-gray-700 bg-opacity-50 flex inset-0 items-center justify-center z-50">
-    <div class="bg-white max-w-sm rounded">
-        <div class="bg-gray-800 flex items-center justify-between p-4 shadow-xl text-center text-white">
-            <h3 class=text-xl>Warning</h3>
-            <svg fill=none stroke=currentColor class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M6 18 18 6M6 6l12 12"/></svg>
+
+
+<div class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-40" x-show=$store.networkSettingsModal.open>
+    <div class="bg-white max-h-[90vh] max-w-2xl overflow-y-auto rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl sticky text-white top-0">
+            <h2 class="font-semibold sm:text-2xl text-xl">Network Configuration</h2>
+            <button type=button @click=$store.networkSettingsModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
         </div>
-        <div class="mt-4 p-6">
-            <p class="mb-4 text-sm">
-                Are you sure to reset your wifi settings, doing so, the gaming table will reboot in
-                acces point mode and a new wifi settings will be ask before be able to controle your
-                table.
+        <div class="bg-white p-4 sm:p-6">
+            <form x-data x-on:submit.prevent=$store.endpoints.saveNetworkConfig($formData) class="group novalidate">
+                <div class=space-y-4>
+                    <div>
+                        <label for=ip class="block font-medium text-gray-700 text-sm">
+                            Static IP
+                        </label>
+                        <input id=ip name=ip placeholder=192.168.1.1 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 invalid:border-red-500 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                        <span class="hidden mt-1 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
+                            Please enter a valid IP address
+                        </span>
+                    </div>
+                    <div>
+                        <label for=subnet class="block font-medium text-gray-700 text-sm">
+                            Subnet
+                        </label>
+                        <input id=subnet name=subnet placeholder=255.255.255.0 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 invalid:border-red-500 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                        <span class="hidden mt-1 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
+                            Please enter a valid IP address
+                        </span>
+                    </div>
+                    <div>
+                        <label for=gateway class="block font-medium text-gray-700 text-sm">
+                            Gateway
+                        </label>
+                        <input id=gateway name=gateway placeholder=192.168.1.1 required pattern=((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$ class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 invalid:border-red-500 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                        <span class="hidden mt-1 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
+                            Please enter a valid IP address
+                        </span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 justify-end mt-6">
+                    <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.networkModal.toggle()>
+                        Reset
+                    </button>
+                    <button class="bg-blue-900 group-invalid:opacity-50 group-invalid:pointer-events-none hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.networkSettingsModal.toggle()>
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-40" x-show=$store.mqttSettingsModal.open>
+    <div class="bg-white max-h-[90vh] max-w-2xl overflow-y-auto rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl sticky text-white top-0">
+            <h2 class="font-semibold sm:text-2xl text-xl">MQTT Configuration</h2>
+            <button type=button @click=$store.mqttSettingsModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
+        </div>
+        <div class="bg-white p-4 sm:p-6">
+            <form x-data x-on:submit.prevent=$store.endpoints.saveMqttConfig($formData) class="group novalidate">
+                <div class=space-y-4>
+                    <div>
+                        <label for=mqtt_server class="block font-medium text-gray-700 text-sm">
+                            MQTT Server
+                        </label>
+                        <input id=mqtt_server name=mqtt_server placeholder=192.168.1.100 class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                    </div>
+                    <div>
+                        <label for=mqtt_port class="block font-medium text-gray-700 text-sm">
+                            MQTT Port
+                        </label>
+                        <input type=number id=mqtt_port name=mqtt_port placeholder=1883 min=1 max=65535 class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 invalid:border-red-500 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                        <span class="hidden mt-1 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block text-red-500 text-sm">
+                            Please enter a valid port (1-65535)
+                        </span>
+                    </div>
+                    <div>
+                        <label for=mqtt_user class="block font-medium text-gray-700 text-sm">
+                            MQTT Username
+                        </label>
+                        <input id=mqtt_user name=mqtt_user placeholder=username class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 mt-1 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                    </div>
+                    <div>
+                        <label for=mqtt_pass class="block font-medium text-gray-700 text-sm">
+                            MQTT Password
+                        </label>
+                        <div class="flex items-center mt-1 relative" x-data="{ show: false }">
+                            <input :type="show ? 'text' : 'password'" id=mqtt_pass name=mqtt_pass placeholder=Password class="border border-gray-300 focus:border-blue-900 focus:outline-none focus:ring-blue-900 px-3 py-2 rounded-md shadow-sm text-sm w-full">
+                            <button type=button @click="show = !show" class="absolute hover:text-gray-700 right-3 text-gray-500" tabindex=-1>
+                                <svg fill=none stroke=currentColor class="h-5 w-5" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7"/></svg>
+                                <svg fill=none stroke=currentColor class="h-5 w-5" style=display:none viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 9.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88 6.59 6.59m7.532 7.532 3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 justify-end mt-6">
+                    <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.mqttModal.toggle()>
+                        Reset
+                    </button>
+                    <button class="bg-blue-900 group-invalid:opacity-50 group-invalid:pointer-events-none hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.mqttSettingsModal.toggle()>
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div x-data x-show=$store.wifiModal.open class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-50">
+    <div class="bg-white max-w-sm rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl text-white">
+            <h3 class="font-semibold text-lg">Warning</h3>
+            <button type=button @click=$store.wifiModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
+        </div>
+        <div class=p-6>
+            <p class="mb-4 text-gray-700 text-sm">
+                Are you sure you want to reset your WiFi settings? The device will reboot in access point mode and ask for new WiFi credentials.
             </p>
-            <button class="bg-gray-700 px-4 py-2 rounded text-white" @click=$store.wifiModal.toggle()>
-                Cancel
-            </button>
-            <button class="bg-blue-900 px-4 py-2 rounded text-white" @click=$store.wifiModal.exec()>
-                Save
-            </button>
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.wifiModal.toggle()>
+                    Cancel
+                </button>
+                <button type=button class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.wifiModal.exec()>
+                    Confirm Reset
+                </button>
+            </div>
         </div>
     </div>
 </div>
-<div x-data x-show=$store.networkModal.open class="absolute bg-gray-700 bg-opacity-50 flex inset-0 items-center justify-center z-50">
-    <div class="bg-white max-w-sm rounded">
-        <div class="bg-gray-800 flex items-center justify-between p-4 shadow-xl text-center text-white">
-            <h3 class=text-xl>Warning</h3>
-            <svg fill=none stroke=currentColor class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M6 18 18 6M6 6l12 12"/></svg>
+
+
+<div x-data x-show=$store.networkModal.open class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-50">
+    <div class="bg-white max-w-sm rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl text-white">
+            <h3 class="font-semibold text-lg">Warning</h3>
+            <button type=button @click=$store.networkModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
         </div>
-        <div class="mt-4 p-6">
-            <p class="mb-4 text-sm">Are you sure you want to reset your network settings ?</p>
-            <button class="bg-gray-700 px-4 py-2 rounded text-white" @click=$store.networkModal.toggle()>
-                Cancel
-            </button>
-            <button class="bg-blue-900 px-4 py-2 rounded text-white" @click=$store.networkModal.exec()>
-                Save
-            </button>
+        <div class=p-6>
+            <p class="mb-4 text-gray-700 text-sm">
+                Are you sure you want to reset your network settings?
+            </p>
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.networkModal.toggle()>
+                    Cancel
+                </button>
+                <button type=button class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.networkModal.exec()>
+                    Confirm Reset
+                </button>
+            </div>
         </div>
     </div>
 </div>
-<div x-data x-show=$store.mqttModal.open class="absolute bg-gray-700 bg-opacity-50 flex inset-0 items-center justify-center z-50">
-    <div class="bg-white max-w-sm rounded">
-        <div class="bg-gray-800 flex items-center justify-between p-4 shadow-xl text-center text-white">
-            <h3 class=text-xl>Warning</h3>
-            <svg fill=none stroke=currentColor class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round stroke-width=2 d="M6 18 18 6M6 6l12 12"/></svg>
+
+
+<div x-data x-show=$store.mqttModal.open class="bg-gray-700 bg-opacity-50 fixed flex inset-0 items-center justify-center p-4 z-50">
+    <div class="bg-white max-w-sm rounded-lg shadow-xl w-full">
+        <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl text-white">
+            <h3 class="font-semibold text-lg">Warning</h3>
+            <button type=button @click=$store.mqttModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
         </div>
-        <div class="mt-4 p-6">
-            <p class="mb-4 text-sm">Are you sure you want to reset your MQTT settings ?</p>
-            <button class="bg-gray-700 px-4 py-2 rounded text-white" @click=$store.mqttModal.toggle()>
-                Cancel
-            </button>
-            <button class="bg-blue-900 px-4 py-2 rounded text-white" @click=$store.mqttModal.exec()>
-                Save
-            </button>
+        <div class=p-6>
+            <p class="mb-4 text-gray-700 text-sm">
+                Are you sure you want to reset your MQTT settings?
+            </p>
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button type=button class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm text-white transition" @click=$store.mqttModal.toggle()>
+                    Cancel
+                </button>
+                <button type=button class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-sm text-white transition" @click=$store.mqttModal.exec()>
+                    Confirm Reset
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -382,7 +456,9 @@
     <div class="bg-white max-w-md rounded-lg shadow-xl">
         <div class="bg-gray-800 flex items-center justify-between p-4 rounded-t-lg shadow-xl text-white">
             <h2 class="font-semibold text-xl">Version Information</h2>
-            <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="cursor-pointer h-6 hover:text-gray-400 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            <button type=button @click=$store.versionModal.toggle() class="hover:text-gray-400 p-1 text-white transition" aria-label=Close>
+                <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><line x1=18 x2=6 y1=6 y2=18 /><line x1=6 x2=18 y1=6 y2=18 /></svg>
+            </button>
         </div>
 
         <div class="p-6 space-y-6">

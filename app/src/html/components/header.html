@@ -36,8 +36,9 @@
                     <div x-data class="ml-4 flex items-center md:ml-6">
                         <span
                             @click="$store.websocket.init()"
-                            class="rounded-full bg-gray-800 p-1 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                            class="rounded-full bg-gray-800 p-1 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 cursor-pointer"
                             :class="[$store.websocket.state === true ? 'text-green-400' : 'text-red-400']"
+                            :title="$store.websocket.state === true ? 'WebSocket Connected' : 'WebSocket Disconnected'"
                         >
                             <span class="sr-only">Websocket status</span>
                             <icon src="icons/websocket.svg" class="w-6 h-6"></icon>
@@ -56,14 +57,44 @@
                             </svg>
                         </span>
                     </div>
-                    <div class="ml-4 flex items-center md:ml-6">
-                        <span
-                            @click="$store.settings.open = true"
+                    <!-- Settings Dropdown -->
+                    <div x-data="{ open: false }" class="ml-4 flex items-center md:ml-6 relative dropdown dropdown-end">
+                        <button
+                            @click="open = !open"
                             class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
                         >
                             <span class="sr-only">Configuration</span>
                             <icon src="icons/settings.svg" class="w-6 h-6"></icon>
-                        </span>
+                        </button>
+                        <div x-show="open" @click.outside="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50" style="display:none; top: 100%">
+                            <div class="py-2">
+                                <button
+                                    @click="$store.wifiSettingsModal.toggle(); open = false"
+                                    class="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition text-sm"
+                                >
+                                    WiFi Configuration
+                                </button>
+                                <button
+                                    @click="$store.networkSettingsModal.toggle(); open = false"
+                                    class="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition text-sm"
+                                >
+                                    Network Configuration
+                                </button>
+                                <button
+                                    @click="$store.mqttSettingsModal.toggle(); open = false"
+                                    class="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition text-sm"
+                                >
+                                    MQTT Configuration
+                                </button>
+                                <hr class="my-1">
+                                <button
+                                    @click="window.open('/update', '_blank'); open = false"
+                                    class="w-full text-left px-4 py-2 text-green-600 hover:bg-green-50 transition text-sm"
+                                >
+                                    Firmware Update
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

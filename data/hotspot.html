@@ -16,6 +16,14 @@
             </div>
             <div class=md:block>
                 <div class="flex items-center">
+                    
+                    <div x-data class="flex items-center md:ml-6 ml-4">
+                        <span class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white p-1 rounded-full" :class="[$store.mqtt.connected === true ? 'text-green-400' : ($store.mqtt.connected === false ? 'text-red-400' : 'text-gray-400')]" :title="$store.mqtt.connected === true ? 'MQTT Connected' : ($store.mqtt.connected === false ? 'MQTT Disconnected' : 'MQTT Status Unknown')">
+                            <span class=sr-only>MQTT status</span>
+                            <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=8 class="h-6 w-6" viewBox="0 0 320 320"><path d="M7.1 180.6v117.1c0 8.4 6.8 15.3 15.3 15.3H142c-1-73.2-61.1-132.3-134.9-132.4M7.1 84.1v49.8c99 .9 179.4 80.7 180.4 179.1h51.7C238.2 186.6 134.5 84.2 7.1 84.1M312.9 297.6V193.5C278.1 107.2 207.3 38.9 119 7.1H22.4C14 7.1 7.1 13.9 7.1 22.4v15c152.6.9 276.6 124 277.6 275.6h13c8.4-.1 15.2-6.9 15.2-15.4M272.6 49.8c14.5 14.4 28.6 31.7 40.4 47.8V22.4c0-8.4-6.8-15.3-15.3-15.3h-77.3c18 12.6 36.2 26.8 52.2 42.7"/></svg>
+                        </span>
+                    </div>
+                    
                     <div x-data class="flex items-center md:ml-6 ml-4">
                         <span @click=$store.websocket.init() class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full" :class="[$store.websocket.state === true ? 'text-green-400' : 'text-red-400']">
                             <span class=sr-only>Websocket status</span>
@@ -28,11 +36,29 @@
                             <svg xmlns:xmlns=http://www.w3.org/2000/svg fill=none stroke=currentColor stroke-linecap=round stroke-linejoin=round stroke-width=2 class="h-6 w-6" viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><line x1=12 x2=12 y1=16 y2=12 /><line x1=12 x2=12.01 y1=8 y2=8 /></svg>
                         </span>
                     </div>
-                    <div class="flex items-center md:ml-6 ml-4">
-                        <span @click="$store.settings.open = true" class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
+                    
+                    <div x-data="{ open: false }" class="dropdown dropdown-end flex items-center md:ml-6 ml-4 relative">
+                        <button @click="open = !open" class="bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white hover:text-white p-1 rounded-full text-gray-400">
                             <span class=sr-only>Configuration</span>
                             <svg fill=none stroke=currentColor stroke-width=1.5 class="h-6 w-6" viewBox="0 0 24 24"><path stroke-linecap=round stroke-linejoin=round d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87q.11.06.22.127c.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a7 7 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a7 7 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a7 7 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a7 7 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124q.108-.066.22-.128c.332-.183.582-.495.644-.869Z"/><path stroke-linecap=round stroke-linejoin=round d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/></svg>
-                        </span>
+                        </button>
+                        <div x-show=open @click.outside="open = false" class="absolute bg-white mt-2 right-0 rounded-lg shadow-lg w-48 z-50" style=display:none;top:100%>
+                            <div class=py-2>
+                                <button @click="$store.wifiSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    WiFi Configuration
+                                </button>
+                                <button @click="$store.networkSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    Network Configuration
+                                </button>
+                                <button @click="$store.mqttSettingsModal.toggle(); open = false" class="hover:bg-gray-100 px-4 py-2 text-gray-800 text-left text-sm transition w-full">
+                                    MQTT Configuration
+                                </button>
+                                <hr class=my-1>
+                                <button @click="window.open('/update', '_blank'); open = false" class="hover:bg-green-50 px-4 py-2 text-green-600 text-left text-sm transition w-full">
+                                    Firmware Update
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

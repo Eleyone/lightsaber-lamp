@@ -52,6 +52,27 @@ Alpine.store('mqttModal', {
     }
 });
 
+Alpine.store('wifiSettingsModal', {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+    }
+});
+
+Alpine.store('networkSettingsModal', {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+    }
+});
+
+Alpine.store('mqttSettingsModal', {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+    }
+});
+
 Alpine.store('settings', {
     open: false,
     toggle() {

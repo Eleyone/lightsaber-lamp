@@ -12,4 +12,5 @@ module.exports = {
       mono: ["ui-monospace", "monospace"],
     },
   },
+  plugins: [require("daisyui")],
 }
