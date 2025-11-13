@@ -1,10 +1,27 @@
 /**
  * MQTT Status Monitor
- * Polls the /status endpoint to monitor MQTT connection status
+ * Listens to WebSocket messages to monitor MQTT connection status in real-time
  */
 export default {
-    checkInterval: null,
-    async checkMqttStatus() {
+    init() {
+        // Listen for WebSocket changes to update MQTT status
+        window.addEventListener('wschanged', (event) => {
+            try {
+                const data = JSON.parse(event.detail);
+                if (data.mqtt && typeof data.mqtt.connected !== 'undefined') {
+                    const mqttStore = Alpine.store('mqtt');
+                    mqttStore.connected = data.mqtt.connected;
+                }
+            } catch (error) {
+                console.warn('Could not parse WebSocket message for MQTT status:', error);
+            }
+        });
+
+        // Also try to get initial status from /status endpoint if WebSocket hasn't sent data yet
+        this.checkInitialStatus();
+    },
+
+    async checkInitialStatus() {
         try {
             const response = await fetch('/status');
             if (!response.ok) {
@@ -12,35 +29,13 @@ export default {
             }
             const data = await response.json();
 
-            // Update the mqtt store with connection status
+            // Only update if we haven't received data from WebSocket yet
             const mqttStore = Alpine.store('mqtt');
-            if (data.mqtt && typeof data.mqtt.connected !== 'undefined') {
+            if (mqttStore.connected === null && data.mqtt && typeof data.mqtt.connected !== 'undefined') {
                 mqttStore.connected = data.mqtt.connected;
-            } else {
-                // If MQTT data is not available, mark as unknown
-                mqttStore.connected = null;
             }
         } catch (error) {
-            console.error('Error checking MQTT status:', error);
-            const mqttStore = Alpine.store('mqtt');
-            mqttStore.connected = null;
-        }
-    },
-
-    init() {
-        // Check immediately on init
-        this.checkMqttStatus();
-
-        // Check every 5 seconds
-        this.checkInterval = setInterval(() => {
-            this.checkMqttStatus();
-        }, 5000);
-    },
-
-    destroy() {
-        if (this.checkInterval) {
-            clearInterval(this.checkInterval);
-            this.checkInterval = null;
+            console.warn('Could not fetch initial MQTT status:', error);
         }
     }
 };
