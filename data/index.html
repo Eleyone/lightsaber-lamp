@@ -401,6 +401,9 @@
                 <h3 class="font-medium mb-2 text-gray-500 text-sm tracking-wide uppercase">Web App</h3>
                 <p class="font-bold text-2xl text-gray-900" x-text="app || 'Loading...'"></p>
                 <p class="mt-1 text-gray-500 text-xs" x-text="appBuildDate || '—'"></p>
+                <p class="mt-1 text-gray-500 text-xs">
+                    Commit: <span class=font-mono x-text="appCommitHash || '—'"></span>
+                </p>
             </div>
 
             
@@ -422,7 +425,7 @@
     </div>
 </div>
 
-<script>function versionModal(){return{firmware:null,app:null,firmwareBuildDate:null,appBuildDate:null,commitHash:null,wifiStatus:null,error:null,async init(){try{let i=await fetch("/api/version"),t=await i.json();this.firmware=t.firmware,this.firmwareBuildDate=`Built: ${t.build_date}`,this.commitHash=t.commit_hash;let a=await fetch("/version.json"),e=await a.json();this.app=e.app,this.appBuildDate=`Built: ${new Date(e.buildDate).toLocaleString()}`;let n=await fetch("/status"),o=await n.json();o.wifi&&o.wifi.connected?this.wifiStatus=`Connected to: ${o.wifi.local_ip}`:this.wifiStatus="WiFi: Disconnected"}catch(i){console.error("Error loading version information:",i),this.error="Could not load version information"}}}}</script>
+<script>function versionModal(){return{firmware:null,app:null,firmwareBuildDate:null,appBuildDate:null,commitHash:null,appCommitHash:null,wifiStatus:null,error:null,async init(){try{let i=await fetch("/api/version"),t=await i.json();this.firmware=t.firmware,this.firmwareBuildDate=`Built: ${t.build_date}`,this.commitHash=t.commit_hash;let a=await fetch("/version.json"),o=await a.json();this.app=o.app,this.appBuildDate=`Built: ${new Date(o.buildDate).toLocaleString()}`,this.appCommitHash=o.commit_hash;let e=await fetch("/status"),n=await e.json();n.wifi&&n.wifi.connected?this.wifiStatus=`Connected to: ${n.wifi.local_ip}`:this.wifiStatus="WiFi: Disconnected"}catch(i){console.error("Error loading version information:",i),this.error="Could not load version information"}}}}</script>
 
         </main>
         <footer class="bg-gray-800 mt-4">

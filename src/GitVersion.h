@@ -4,6 +4,6 @@
 #ifndef GIT_VERSION_H
 #define GIT_VERSION_H
 
-#define GIT_COMMIT_HASH "1506e22"
+#define GIT_COMMIT_HASH "dd67e41"
 
 #endif

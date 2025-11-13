@@ -39,6 +39,9 @@
                 <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Web App</h3>
                 <p class="text-2xl font-bold text-gray-900" x-text="app || 'Loading...'"></p>
                 <p class="text-xs text-gray-500 mt-1" x-text="appBuildDate || '—'"></p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Commit: <span class="font-mono" x-text="appCommitHash || '—'"></span>
+                </p>
             </div>
 
             <!-- Device Info -->
@@ -76,6 +79,7 @@ function versionModal() {
         firmwareBuildDate: null,
         appBuildDate: null,
         commitHash: null,
+        appCommitHash: null,
         wifiStatus: null,
         error: null,
 
@@ -93,6 +97,7 @@ function versionModal() {
                 const appData = await appResponse.json();
                 this.app = appData.app;
                 this.appBuildDate = `Built: ${new Date(appData.buildDate).toLocaleString()}`;
+                this.appCommitHash = appData.commit_hash;
 
                 // Fetch WiFi status
                 const statusResponse = await fetch('/status');

@@ -1,6 +1,6 @@
 {
   "name": "light-saber_lamp_control_panel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "App to be able to control the LightSaber lamp",
   "scripts": {
