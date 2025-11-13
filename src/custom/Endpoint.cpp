@@ -98,11 +98,11 @@ void Endpoint::version(AsyncWebServerRequest *request) {
   AsyncResponseStream *response = request->beginResponseStream("application/json");
   response->setCode(200);
 
-  const char* json_response = "{\"firmware\":\"1.2.0\",\"build_date\":\"Nov 10 2025\"}";
+  DynamicJsonDocument json(512);
+  json["firmware"] = VERSION_STRING;
+  json["build_date"] = BUILD_DATE_TIME;
 
-  size_t len = strlen(json_response);
-  response->write((const uint8_t*)json_response, len);
-
+  serializeJson(json, *response);
   request->send(response);
 }
 

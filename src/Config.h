@@ -6,7 +6,11 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 2
 #define VERSION_PATCH 0
-#define BUILD_DATE __DATE__ " " __TIME__
+
+// Build date and time captured at compile time
+#define BUILD_DATE __DATE__
+#define BUILD_TIME __TIME__
+#define BUILD_DATE_TIME BUILD_DATE " " BUILD_TIME
 
 // Construct semantic version string
 #define STRINGIFY(x) #x
