@@ -231,6 +231,7 @@ void setup() {
   server.addHandler(&ws);
 
   // AsyncElegantOTA MUST be called after routes are added but before server.begin()
+  // Note: AsyncElegantOTA automatically restarts the device after successful firmware upload
   AsyncElegantOTA.begin(&server);
 
   server.begin();
