@@ -13,11 +13,13 @@ const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
-// Get directories
-const buildDir = process.env.BUILD_DIR || '.pio/build/light-saber';
-const appSrcDir = path.join(__dirname, 'app', 'src');
-const packageJsonPath = path.join(__dirname, 'app', 'package.json');
-const dataDir = path.join(__dirname, 'data');
+// Get directories - handle both cases: called from root or from app folder
+const isCalledFromAppFolder = __dirname.endsWith('app');
+const projectRoot = isCalledFromAppFolder ? path.join(__dirname, '..') : __dirname;
+const appSrcDir = path.join(projectRoot, 'app', 'src');
+const packageJsonPath = path.join(projectRoot, 'app', 'package.json');
+const dataDir = path.join(projectRoot, 'data');
+const buildDir = process.env.BUILD_DIR || path.join(projectRoot, '.pio', 'build', 'light-saber');
 
 /**
  * Get Git commit hash
