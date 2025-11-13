@@ -226,11 +226,13 @@ void setup() {
     endpoint.initClientRouting();
   }
 
-  AsyncElegantOTA.begin(&server);
-
   ws.onEvent(wsEventHandler);
 
   server.addHandler(&ws);
+
+  // AsyncElegantOTA MUST be called after routes are added but before server.begin()
+  AsyncElegantOTA.begin(&server);
+
   server.begin();
   Serial.println("HTTP server started");
 

@@ -34,6 +34,7 @@ class Endpoint {
         void initClientRouting();
         void wsMessageHandler(void *arg, uint8_t *data, size_t len);
         void wsBroadcastLedStatus();
+        void handleFirmwareUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
     private:
         void _initStatics();
         void _initWebSocket();

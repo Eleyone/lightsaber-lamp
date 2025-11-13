@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <Update.h>
 #include "../Config.h"
 #include "Ledstrip.h"
 #include "Endpoint.h"
@@ -379,6 +380,15 @@ void Endpoint::initClientRouting()
       this->_error(request, "MQTT Manager not available");
     }
   });
+
+  // Firmware OTA update endpoint
+  _server->on("/update", HTTP_POST, [&](AsyncWebServerRequest *request){
+    // This is handled by the upload handler below
+    // Send 200 if upload was successful (handled in handleFirmwareUpload)
+    // The upload handler will send responses
+  }, [&](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
+    this->handleFirmwareUpload(request, filename, index, data, len, final);
+  });
 }
 
 void Endpoint::_initStatics()
@@ -558,4 +568,55 @@ void Endpoint::resetMqttConfig(AsyncWebServerRequest *request) {
   // Schedule restart with delay to allow response to be sent first
   delay(500);
   ESP.restart();
+}
+
+void Endpoint::handleFirmwareUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+  if (!index) {
+    Serial.printf("Starting firmware update: %s\n", filename.c_str());
+    // Start update with total size estimation
+    if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+      Serial.printf("Update.begin() failed: %u\n", Update.getError());
+      Update.printError(Serial);
+      request->send(500, "text/plain", "Cannot start firmware update");
+      return;
+    }
+  }
+
+  // Write data chunk
+  if (Update.write(data, len) != len) {
+    Serial.printf("Update.write() failed: %u\n", Update.getError());
+    Update.printError(Serial);
+    request->send(500, "text/plain", "Failed to write firmware data");
+    return;
+  }
+
+  // Handle completion
+  if (final) {
+    Serial.printf("Finalizing update. Total bytes written: %u\n", index + len);
+
+    if (!Update.end(false)) { // false = don't reboot yet
+      Serial.printf("Update.end() failed: %u\n", Update.getError());
+      Update.printError(Serial);
+      request->send(500, "text/plain", "Failed to finalize update");
+      return;
+    }
+
+    // If we reach here, update was successful
+    Serial.println("Firmware update completed successfully!");
+
+    // Send success response BEFORE restart
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->setCode(200);
+    DynamicJsonDocument responseJson(256);
+    responseJson["message"] = "Firmware update successful. Device rebooting...";
+    serializeJson(responseJson, *response);
+    request->send(response);
+
+    // Give time for response to be sent
+    delay(1000);
+
+    // Now reboot
+    Serial.println("Rebooting device...");
+    ESP.restart();
+  }
 }
