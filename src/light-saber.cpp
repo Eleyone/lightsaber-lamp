@@ -164,6 +164,21 @@ void loopLed() {
     lukeLedStrip.resetPreviousState();
   }
 
+  // Handle Luke color/brightness changes while powered on (in IDLE state)
+  if (lukeLEDState.state == LEDAnimationState::IDLE && lukeLedStrip.getState()) {
+    if (lukeLedStrip.hasColorChanged() || lukeLedStrip.hasBrightnessChanged()) {
+      // Update all LEDs with new color
+      CRGB newColor = lukeLedStrip.getColor();
+      for (int i = 0; i < NB_LED_SABER; i++) {
+        lukeLeds[i] = newColor;
+      }
+      // Apply brightness and refresh display
+      ledControllers[LUKE]->showLeds(lukeLedStrip.getBrightness());
+      lukeLedStrip.resetColorChange();
+      lukeLedStrip.resetBrightnessChange();
+    }
+  }
+
   // Handle Vader state changes
   if (vaderLedStrip.hasStateChanged()) {
     if (vaderLedStrip.getState()) {
@@ -172,6 +187,21 @@ void loopLed() {
       startPowerDownSaber(VADER);
     }
     vaderLedStrip.resetPreviousState();
+  }
+
+  // Handle Vader color/brightness changes while powered on (in IDLE state)
+  if (vaderLEDState.state == LEDAnimationState::IDLE && vaderLedStrip.getState()) {
+    if (vaderLedStrip.hasColorChanged() || vaderLedStrip.hasBrightnessChanged()) {
+      // Update all LEDs with new color
+      CRGB newColor = vaderLedStrip.getColor();
+      for (int i = 0; i < NB_LED_SABER; i++) {
+        vaderLeds[i] = newColor;
+      }
+      // Apply brightness and refresh display
+      ledControllers[VADER]->showLeds(vaderLedStrip.getBrightness());
+      vaderLedStrip.resetColorChange();
+      vaderLedStrip.resetBrightnessChange();
+    }
   }
 
   // Update LED animations (non-blocking)

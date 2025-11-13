@@ -16,8 +16,11 @@ Ledstrip::Ledstrip(const char *name, CRGB color) : _name(name),
 void Ledstrip::initLedstrip()
 {
     _color = _defaultColor;
+    _prevColor = _defaultColor;
     _state = true;
     _prevState = false;
+    _brightness = 255;
+    _prevBrightness = 255;
 }
 
 const char *Ledstrip::getName()
@@ -37,6 +40,7 @@ void Ledstrip::changeColor(String hexColorString)
 
 void Ledstrip::changeColor(CRGB newColor)
 {
+    this->_prevColor = this->_color;
     this->_color = newColor;
 }
 
@@ -78,5 +82,28 @@ uint8_t Ledstrip::getBrightness()
 
 void Ledstrip::changeBrightness(uint8_t newBrightness)
 {
+    this->_prevBrightness = this->_brightness;
     this->_brightness = newBrightness;
+}
+
+bool Ledstrip::hasColorChanged()
+{
+    return this->_prevColor.r != this->_color.r ||
+           this->_prevColor.g != this->_color.g ||
+           this->_prevColor.b != this->_color.b;
+}
+
+void Ledstrip::resetColorChange()
+{
+    this->_prevColor = this->_color;
+}
+
+bool Ledstrip::hasBrightnessChanged()
+{
+    return this->_prevBrightness != this->_brightness;
+}
+
+void Ledstrip::resetBrightnessChange()
+{
+    this->_prevBrightness = this->_brightness;
 }
