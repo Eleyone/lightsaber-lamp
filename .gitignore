@@ -8,3 +8,4 @@
 /app/.parcel-cache/*
 /app/build/*
 /app/dist/*/bin/
+.env
