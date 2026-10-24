@@ -5,7 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Preferences.h>
 #include <LittleFS.h>
-#include <AsyncElegantOTA.h>
+#include <ElegantOTA.h>
 #include <InputDebounce.h>
 #include "custom/Ledstrip.h"
 #include "custom/Endpoint.h"
@@ -25,7 +25,7 @@ CLEDController *ledControllers[2];
 Ledstrip lukeLedStrip("luke_strip", COLOR_LUKE);
 Ledstrip vaderLedStrip("vader_strip", COLOR_VADER);
 
-Network network(&prefs);
+WifiNetwork network(&prefs);
 MqttManager mqttManager(&prefs, &lukeLedStrip, &vaderLedStrip);
 Endpoint endpoint(&server, &ws, &prefs, &lukeLedStrip, &vaderLedStrip, &mqttManager);
 
@@ -230,9 +230,9 @@ void setup() {
 
   server.addHandler(&ws);
 
-  // AsyncElegantOTA MUST be called after routes are added but before server.begin()
-  // Note: AsyncElegantOTA automatically restarts the device after successful firmware upload
-  AsyncElegantOTA.begin(&server);
+  // ElegantOTA MUST be called after routes are added but before server.begin()
+  // Note: ElegantOTA automatically restarts the device after successful firmware upload (requires ElegantOTA.loop())
+  ElegantOTA.begin(&server);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -268,4 +268,5 @@ void loop() {
   loopLed();
   network.loop();  // Background WiFi reconnection
   mqttManager.loop();
+  ElegantOTA.loop();
 }

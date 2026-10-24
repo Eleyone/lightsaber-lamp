@@ -116,7 +116,7 @@ Built with Parcel bundler, Tailwind CSS, and Alpine.js:
 
 ### Firmware Libraries (PlatformIO)
 - **FastLED**: LED strip control and animations
-- **AsyncElegantOTA**: Over-the-air firmware updates
+- **ElegantOTA** (async mode): Over-the-air firmware updates (`/update` page, `/ota/start` + `/ota/upload`)
 - **ESPAsyncWebServer**: HTTP and WebSocket server
 - **ArduinoJson**: JSON serialization for configuration/status
 - **InputDebounce**: Button debouncing (20ms)

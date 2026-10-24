@@ -51,11 +51,10 @@ echo "   (L'appareil va redémarrer automatiquement)"
 # Calculer le hash MD5
 MD5=$(md5sum .pio/build/light-saber/firmware.bin | cut -d' ' -f1)
 
-# Uploader le firmware via HTTP POST
-curl --silent --data-binary "@.pio/build/light-saber/firmware.bin" \
-    -H "Content-Type: application/octet-stream" \
-    -d "MD5=$MD5" \
-    http://$DEVICE_IP/update
+# ElegantOTA : ouvrir la zone flash (avec le MD5 attendu), puis envoyer le binaire en multipart
+curl --silent --fail "http://$DEVICE_IP/ota/start?mode=fr&hash=$MD5" > /dev/null && \
+curl --silent --fail -F "file=@.pio/build/light-saber/firmware.bin" \
+    http://$DEVICE_IP/ota/upload
 
 if [ $? -eq 0 ]; then
     echo ""

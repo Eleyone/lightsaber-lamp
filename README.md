@@ -29,7 +29,7 @@ Once install, go to the app directory and run ```npm install```
 - FastLED
 - LittleFS
 - WiFi
-- AsyncElegantOTA
+- ElegantOTA (async mode)
 - ArduinoJson v7
 - PubSubClient (MQTT)
 - InputDebounce

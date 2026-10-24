@@ -3,14 +3,14 @@
 #include <Arduino.h>
 #include <Preferences.h>
 
-class Network {
+class WifiNetwork {
     Preferences *_prefs;
     unsigned long _lastWiFiCheckTime = 0;
     const unsigned long WIFI_CHECK_INTERVAL_MS = 10000;  // Check every 10 seconds
     int _wifiConnectionAttempts = 0;
     const int MAX_WIFI_CONNECTION_ATTEMPTS = 3;
     public:
-        explicit Network(Preferences *prefs);
+        explicit WifiNetwork(Preferences *prefs);
         void initConnexion();
         void loop();  // Background WiFi reconnection attempt
         bool isAccessPoint();

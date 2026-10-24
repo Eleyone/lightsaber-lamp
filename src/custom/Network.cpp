@@ -3,11 +3,11 @@
 #include <WiFi.h>
 #include "Network.h"
 
-Network::Network(Preferences *prefs):
+WifiNetwork::WifiNetwork(Preferences *prefs):
     _prefs(prefs)
 {}
 
-void Network::initConnexion() {
+void WifiNetwork::initConnexion() {
     _getNetworkConfig();
 
     if (!_isAccessPointMode) {
@@ -39,11 +39,11 @@ void Network::initConnexion() {
     _initAccesPointMode();
 }
 
-bool Network::isAccessPoint() {
+bool WifiNetwork::isAccessPoint() {
     return _isAccessPointMode;
 }
 
-void Network::loop() {
+void WifiNetwork::loop() {
     // If already connected, nothing to do
     if (WiFi.status() == WL_CONNECTED) {
         return;
@@ -84,7 +84,7 @@ void Network::loop() {
     }
 }
 
-void Network::_initAccesPointMode() {
+void WifiNetwork::_initAccesPointMode() {
     Serial.println("Dropping into AP mode for configuration.");
 
     IPAddress apIP(192, 168, 1, 1);
@@ -103,7 +103,7 @@ void Network::_initAccesPointMode() {
     Serial.println(WiFi.softAPIP());
 }
 
-void Network::_initClientMode(int attemptNumber) {
+void WifiNetwork::_initClientMode(int attemptNumber) {
     if (!_clientIP.toString().isEmpty()) {
         Serial.print("Set static IP address: ");
         Serial.print(_clientIP);
@@ -163,7 +163,7 @@ void Network::_initClientMode(int attemptNumber) {
     }
 }
 
-void Network::_getNetworkConfig() {
+void WifiNetwork::_getNetworkConfig() {
     _prefs->begin("wifi");
     _clientSSID = _prefs->getString("SSID", "");
     _clientPWD = _prefs->getString("PWD", "");
@@ -188,7 +188,7 @@ void Network::_getNetworkConfig() {
     }
 }
 
-IPAddress Network::_getIPAddressFromString(String ipString) {
+IPAddress WifiNetwork::_getIPAddressFromString(String ipString) {
     IPAddress ipAddress;
     if (!ipAddress.fromString(ipString.c_str())) {
         Serial.print("Enable to parse to an actual IP address: ");
