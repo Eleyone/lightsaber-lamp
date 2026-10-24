@@ -62,11 +62,26 @@ console.log(`[Build] Current commit hash: ${commitHash}`);
 // Increment patch version
 const newVersion = incrementPatchVersion();
 
+/**
+ * Get the commit date: unlike the clock, it is the same for the CI and a local
+ * build of the same commit, so the LittleFS image is reproducible
+ */
+function getGitCommitDate() {
+  try {
+    return new Date(execSync('git log -1 --format=%cI', { encoding: 'utf-8' }).trim());
+  } catch (err) {
+    console.warn('Warning: Could not get Git commit date:', err.message);
+    return new Date();
+  }
+}
+
+const buildDate = getGitCommitDate();
+
 // Build info object
 const buildInfo = {
   app: newVersion || JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')).version,
-  buildDate: new Date().toISOString(),
-  buildTime: new Date().toLocaleString(),
+  buildDate: buildDate.toISOString(),
+  buildTime: buildDate.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }),
   commit_hash: commitHash,
 };
 
