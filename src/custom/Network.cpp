@@ -26,6 +26,9 @@ WifiNetwork::WifiNetwork(Preferences *prefs):
 
 void WifiNetwork::initConnexion() {
     _getNetworkConfig();
+    // Credentials live in Preferences: keep the WiFi driver profiles in RAM so
+    // they are rebuilt at every boot instead of being reloaded from NVS
+    WiFi.persistent(false);
     WiFi.onEvent(_onApEvent);
 
     if (!_isAccessPointMode) {
@@ -131,6 +134,11 @@ void WifiNetwork::_initAccesPointMode() {
     IPAddress apGateway(192, 168, 1, 1);
     IPAddress apSubnet(255, 255, 255, 0);
 
+    // softAP() skips esp_wifi_set_config() when SSID/password/auth match the
+    // profile the driver already holds (loaded from NVS at init), so a stale
+    // stored AP profile would never be rewritten. Clearing it first forces the
+    // driver to apply the WPA2 profile again (PMK derived from the passphrase).
+    WiFi.AP.clear();
     WiFi.softAP(_apSSID, _apPWD);
     WiFi.softAPConfig(apIP, apGateway, apSubnet);
     delay(100);
