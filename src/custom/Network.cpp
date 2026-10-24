@@ -3,12 +3,30 @@
 #include <WiFi.h>
 #include "Network.h"
 
+// Log AP client activity: helps diagnose devices that can't join the hotspot
+static void _onApEvent(arduino_event_id_t event, arduino_event_info_t info) {
+    switch (event) {
+        case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+            Serial.printf("AP: client " MACSTR " associated\n", MAC2STR(info.wifi_ap_staconnected.mac));
+            break;
+        case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+            Serial.printf("AP: client " MACSTR " left (reason %d)\n", MAC2STR(info.wifi_ap_stadisconnected.mac), info.wifi_ap_stadisconnected.reason);
+            break;
+        case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
+            Serial.printf("AP: client got IP " IPSTR "\n", IP2STR(&info.wifi_ap_staipassigned.ip));
+            break;
+        default:
+            break;
+    }
+}
+
 WifiNetwork::WifiNetwork(Preferences *prefs):
     _prefs(prefs)
 {}
 
 void WifiNetwork::initConnexion() {
     _getNetworkConfig();
+    WiFi.onEvent(_onApEvent);
 
     if (!_isAccessPointMode) {
         // Credentials are configured, try to connect multiple times quickly at startup
@@ -27,15 +45,14 @@ void WifiNetwork::initConnexion() {
 
         if (_isConnected) {
             Serial.println("\n✓ WiFi connected successfully at startup!");
-        } else {
-            Serial.println("\nWiFi connection failed at startup. Will keep retrying in background...");
+            return;
         }
+        Serial.println("\nWiFi connection failed at startup. Will keep retrying in background...");
+        _stopStation();
     }
 
-    // Always start AP mode for accessibility and recovery
-    // Device will be in dual mode (AP+STA) to allow both:
-    // 1. Access via AP while waiting for WiFi connection
-    // 2. Automatic WiFi connection attempts in background via loop()
+    // The AP is only a fallback: started when there is no home network to join,
+    // stopped by loop() as soon as the station connects
     _initAccesPointMode();
 }
 
@@ -44,8 +61,13 @@ bool WifiNetwork::isAccessPoint() {
 }
 
 void WifiNetwork::loop() {
-    // If already connected, nothing to do
+    // Connected to the home network: the fallback AP is no longer needed
     if (WiFi.status() == WL_CONNECTED) {
+        _retryInProgress = false;
+        if (WiFi.getMode() & WIFI_MODE_AP) {
+            Serial.println("NETWORK: WiFi connected, stopping fallback AP");
+            WiFi.softAPdisconnect(true);
+        }
         return;
     }
 
@@ -54,34 +76,52 @@ void WifiNetwork::loop() {
         return;
     }
 
-    // Check if it's time to attempt reconnection (every 10 seconds)
+    // AP and STA share the radio: while the station looks for its network it
+    // scans every channel and the AP beacons become intermittent (AP unusable).
+    // So the station only runs during a bounded retry window, AP-only otherwise.
     unsigned long now = millis();
-    if (now - _lastWiFiCheckTime < WIFI_CHECK_INTERVAL_MS) {
+    if (_retryInProgress) {
+        if (now - _retryStartedAt < WIFI_RETRY_WINDOW_MS) {
+            return;
+        }
+        Serial.println("NETWORK: WiFi retry timed out, back to AP only");
+        _stopStation();
         return;
     }
 
-    _lastWiFiCheckTime = now;
+    // Connection lost outside a retry window: stop the station auto-reconnect
+    // scans and bring the fallback AP back
+    if (WiFi.getMode() & WIFI_MODE_STA) {
+        Serial.println("NETWORK: WiFi connection lost, starting fallback AP");
+        _stopStation();
+        _initAccesPointMode();
+        return;
+    }
 
-    wifi_mode_t currentMode = WiFi.getMode();
+    if (now - _lastWiFiRetryTime < WIFI_RETRY_INTERVAL_MS) {
+        return;
+    }
 
-    // AP and STA share the radio: WiFi.begin() scans and moves the AP channel,
-    // dropping its clients. Don't retry while someone is connected to the AP.
-    if ((currentMode == WIFI_AP || currentMode == WIFI_AP_STA) && WiFi.softAPgetStationNum() > 0) {
+    _lastWiFiRetryTime = now;
+
+    // Don't retry while someone is connected to the AP: the scan would drop them
+    if (WiFi.softAPgetStationNum() > 0) {
         Serial.println("NETWORK: AP has clients, skipping WiFi retry");
         return;
     }
 
-    // If in AP-only mode, switch to dual mode and try to connect
-    if (currentMode == WIFI_AP) {
-        Serial.println("NETWORK: WiFi credentials available. Switching to AP+STA dual mode...");
-        WiFi.mode(WIFI_AP_STA);
-        WiFi.begin(_clientSSID.c_str(), _clientPWD.c_str());
-    }
-    // If in STA or dual mode but not connected, just retry the connection
-    else if (currentMode == WIFI_STA || currentMode == WIFI_AP_STA) {
-        Serial.println("NETWORK: Retrying WiFi connection...");
-        WiFi.begin(_clientSSID.c_str(), _clientPWD.c_str());
-    }
+    Serial.println("NETWORK: Retrying WiFi connection...");
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.begin(_clientSSID.c_str(), _clientPWD.c_str());
+    _retryInProgress = true;
+    _retryStartedAt = now;
+}
+
+void WifiNetwork::_stopStation() {
+    WiFi.disconnect();
+    WiFi.mode(WIFI_AP);
+    _retryInProgress = false;
+    _lastWiFiRetryTime = millis();
 }
 
 void WifiNetwork::_initAccesPointMode() {
