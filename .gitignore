@@ -7,4 +7,4 @@
 /app/.cache/*
 /app/.parcel-cache/*
 /app/build/*
-/app/dist/*
+/app/dist/*/bin/
