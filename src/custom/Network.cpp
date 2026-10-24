@@ -64,6 +64,13 @@ void Network::loop() {
 
     wifi_mode_t currentMode = WiFi.getMode();
 
+    // AP and STA share the radio: WiFi.begin() scans and moves the AP channel,
+    // dropping its clients. Don't retry while someone is connected to the AP.
+    if ((currentMode == WIFI_AP || currentMode == WIFI_AP_STA) && WiFi.softAPgetStationNum() > 0) {
+        Serial.println("NETWORK: AP has clients, skipping WiFi retry");
+        return;
+    }
+
     // If in AP-only mode, switch to dual mode and try to connect
     if (currentMode == WIFI_AP) {
         Serial.println("NETWORK: WiFi credentials available. Switching to AP+STA dual mode...");
