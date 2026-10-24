@@ -25,7 +25,7 @@ jobs:
             "$BUILD_IMAGE" bash ci/build.sh "$name"
           echo "BIN_NAME=$name" >> "$GITHUB_ENV"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: light-saber-${{ env.BIN_NAME }}
           path: bin/

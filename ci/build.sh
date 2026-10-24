@@ -21,4 +21,4 @@ pio run --environment light-saber
 mkdir -p bin
 cp .pio/build/light-saber/firmware.bin "bin/light-saber-firmware-${name}.bin"
 cp .pio/build/light-saber/littlefs.bin "bin/light-saber-littlefs-${name}.bin"
-(cd bin && sha256sum ./*.bin > "light-saber-${name}.sha256")
+(cd bin && sha256sum ./*.bin | tee "light-saber-${name}.sha256")
