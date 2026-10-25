@@ -1,66 +1,71 @@
 # Guide de Mise à Jour OTA - Light Saber Lamp
 
-## Mise à Jour Rapide (Automatique - Recommandé)
+La lampe se met à jour par le WiFi avec ElegantOTA : page web `http://<ip>/update`, ou en
+ligne de commande avec curl. Deux images à envoyer, dans cet ordre :
+1. **LittleFS** (`littlefs.bin`) : l'app web ;
+2. **Firmware** (`firmware.bin`).
 
-```bash
-./UPDATE_OTA.sh
-```
-
-C'est tout! Le script fait tout automatiquement.
+L'appareil redémarre après chacune.
 
 ---
 
-## Mise à Jour Manuelle (Pas à Pas)
+## Étape 1 : Récupérer les images
 
-### Prérequis
-- Appareil allumé et connecté au WiFi
-- Adresse IP de l'appareil (ex: 192.168.3.51)
-- Les modifications de code sont commitées
+### Depuis la CI (recommandé)
 
-### Étape 1: Compiler le nouveau firmware
+Chaque push sur `main` produit l'artefact `light-saber-<commit>` dans Gitea Actions :
+`light-saber-firmware-<commit>.bin`, `light-saber-littlefs-<commit>.bin` et un fichier
+`.sha256`. Pour un tag `v*`, ces fichiers sont aussi attachés à la release.
+
+Le build est reproductible : pour vérifier qu'une image CI correspond bien aux sources,
 
 ```bash
-# 1. Aller au dossier du projet
-cd /path/to/light-saber
+ci/verify.sh <commit>   # firmware identique à l'octet près, LittleFS : mêmes fichiers
+```
 
-# 2. Compiler l'app web
+(il lit `GITEA_URL` et `GITEA_TOKEN` dans `.env`).
+
+### En local
+
+```bash
 cd app && npm install && npm run build && cd ..
-
-# 3. Compiler le filesystem LittleFS
 pio run --target buildfs --environment light-saber
-
-# 4. Compiler le firmware
 pio run --environment light-saber
 ```
 
-✅ Les fichiers compilés sont maintenant dans `.pio/build/light-saber/`
+Les images sont dans `.pio/build/light-saber/`.
 
-### Étape 2: Envoyer le firmware via OTA
+---
 
-```bash
-# Remplace 192.168.3.51 par l'IP de ton appareil
-timeout 60 curl -F "filedata=@.pio/build/light-saber/firmware.bin" \
-  http://192.168.3.51/update
-```
+## Étape 2 : Envoyer les images
 
-⏳ **Attends 10-15 secondes** que l'appareil redémarre
-
-### Étape 3: Vérifier la mise à jour
+ElegantOTA ouvre d'abord la zone flash avec le MD5 attendu (`/ota/start`), puis reçoit
+l'image (`/ota/upload`). `mode=fs` pour LittleFS, `mode=fr` pour le firmware.
 
 ```bash
-# Vérifier la nouvelle version
-curl http://192.168.3.51/api/version
-```
-
-Devrait afficher:
-```json
-{
-  "firmware": "1.2.0",
-  "build_date": "Nov 13 2025"
+IP=192.168.3.139   # IP de la lampe
+upload() {
+  curl -sf "http://$IP/ota/start?mode=$1&hash=$(md5sum "$2" | cut -d' ' -f1)" \
+    && curl -sf -F "file=@$2" "http://$IP/ota/upload"
 }
+upload fs .pio/build/light-saber/littlefs.bin
+sleep 15   # attendre le redémarrage
+upload fr .pio/build/light-saber/firmware.bin
 ```
 
-✅ **Terminé!** La mise à jour est complète.
+Chaque appel doit répondre `OK`.
+
+---
+
+## Étape 3 : Vérifier la mise à jour
+
+```bash
+curl http://$IP/api/version   # firmware : {"firmware":"…","build_date":"…","commit_hash":"…"}
+curl http://$IP/version.json  # app web
+```
+
+Le `commit_hash` doit être celui des images envoyées. La date de build est celle du commit
+(en UTC pour le firmware).
 
 ---
 
@@ -68,8 +73,7 @@ Devrait afficher:
 
 ### ❌ "Connection refused" ou "Timeout"
 - Vérifier que l'IP est correcte (regarde le routeur)
-- Vérifier que l'appareil est allumé
-- Vérifier que l'appareil est connecté au WiFi
+- Vérifier que l'appareil est allumé et connecté au WiFi
 
 ### ❌ "500 Internal Server Error"
 - L'appareil redémarre peut-être encore
@@ -77,55 +81,16 @@ Devrait afficher:
 
 ### ❌ "Upload stuck ou interrupted"
 1. Appuyer sur le bouton RESET de l'appareil
-2. Attendre que le WiFi se reconnecte (LEDs clignoteront)
+2. Attendre que le WiFi se reconnecte
 3. Réessayer
 
 ### ❌ "Appareil ne répond plus après upload"
 1. Éteindre/rallumer l'appareil
-2. Vérifier les logs série (si possible): `pio device monitor -p /dev/ttyUSB0`
+2. Vérifier les logs série (si possible) : `pio device monitor -p /dev/ttyUSB0 -b 115200`
 
----
-
-## Commandes Utiles
-
-### Voir la version actuelle
-```bash
-curl http://192.168.3.51/api/version
-```
-
-### Voir la version du web app
-```bash
-curl http://192.168.3.51/version.json
-```
-
-### Redémarrer manuellement l'appareil
-(Via la page web settings si disponible, ou débrancher/rebrancher l'alimentation)
-
-### Vérifier la connectivité réseau
-```bash
-ping 192.168.3.51
-```
-
----
-
-## Script Automatique (UPDATE_OTA.sh)
-
-Le script `UPDATE_OTA.sh` fait tout automatiquement:
-1. ✅ Construit l'app web
-2. ✅ Construit le filesystem LittleFS
-3. ✅ Compile le firmware
-4. ✅ Envoie via OTA
-5. ✅ Attends le redémarrage
-6. ✅ Affiche les nouvelles versions
-
-**Utilisation:**
-```bash
-# Éditer le script pour changer l'IP si besoin
-nano UPDATE_OTA.sh
-
-# Lancer la mise à jour
-./UPDATE_OTA.sh
-```
+### ⚠️ Table de partitions
+Un changement de `partitions.csv` ne passe pas par l'OTA : il faut flasher une fois en USB
+(`pio run --target upload --environment light-saber`, puis `--target uploadfs`).
 
 ---
 
@@ -133,4 +98,3 @@ nano UPDATE_OTA.sh
 
 - Voir `README.md` pour plus de détails
 - Voir `CLAUDE.md` pour l'architecture du code
-- Vérifier les logs avec: `pio device monitor -p /dev/ttyUSB0 -b 115200`

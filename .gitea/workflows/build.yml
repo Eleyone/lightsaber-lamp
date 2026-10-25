@@ -41,7 +41,7 @@ jobs:
           api="${GITHUB_SERVER_URL}/api/v1/repos/${GITHUB_REPOSITORY}"
           id=$(curl -sf -X POST "$api/releases" \
             -H "Authorization: token $TOKEN" -H 'Content-Type: application/json' \
-            -d "{\"tag_name\":\"${GITHUB_REF_NAME}\",\"name\":\"Release ${GITHUB_REF_NAME}\",\"body\":\"OTA files: flash the firmware .bin, then the LittleFS .bin (see OTA_UPDATE.md).\"}" \
+            -d "{\"tag_name\":\"${GITHUB_REF_NAME}\",\"name\":\"Release ${GITHUB_REF_NAME}\",\"body\":\"OTA files: flash the LittleFS .bin, then the firmware .bin (see OTA_UPDATE.md).\"}" \
             | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).id))')
           for f in bin/*; do
             curl -sf -X POST "$api/releases/$id/assets?name=$(basename "$f")" \

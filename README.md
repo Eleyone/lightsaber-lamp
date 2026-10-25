@@ -74,28 +74,16 @@ curl http://device-ip/version.json
 
 ### Updating Firmware and App
 
-#### Automatic OTA Update (Recommended)
+#### CI Images
 
-Use the provided `UPDATE_OTA.sh` script for automatic OTA updates:
+Each push to `main` builds the firmware and LittleFS images in the Gitea CI (artifact
+`light-saber-<commit>`, with a `.sha256` file). The build is reproducible: `ci/verify.sh [COMMIT]`
+rebuilds the commit locally and checks that the CI firmware is byte for byte identical and that
+the LittleFS image holds the same files.
 
-```bash
-# Configure the device IP (edit UPDATE_OTA.sh)
-nano UPDATE_OTA.sh  # Change DEVICE_IP if needed
+#### OTA Update
 
-# Run the update
-./UPDATE_OTA.sh
-```
-
-The script will:
-1. Build the latest web app
-2. Package it into the firmware LittleFS filesystem
-3. Upload firmware via OTA
-4. Wait for device restart
-5. Display the new versions after update
-
-#### Manual OTA Update
-
-If you prefer to update manually or the script doesn't work, follow these steps:
+Use the CI images, or build them locally:
 
 **Prerequisites:**
 - Device must be powered on and connected to WiFi
@@ -123,12 +111,18 @@ pio run --environment light-saber
 
 **Step 2: Upload via OTA using curl**
 
-```bash
-# From the project root directory, run:
-timeout 60 curl -F "filedata=@.pio/build/light-saber/firmware.bin" \
-  http://<device-ip>/update
+ElegantOTA first opens the flash area with the expected MD5, then receives the image. Send the
+LittleFS image (`mode=fs`) before the firmware (`mode=fr`): the device restarts after each one.
 
-# Replace <device-ip> with your device's IP (e.g., 192.168.3.51)
+```bash
+# Replace <device-ip> with your device's IP
+upload() {
+  curl -sf "http://<device-ip>/ota/start?mode=$1&hash=$(md5sum "$2" | cut -d' ' -f1)" \
+    && curl -sf -F "file=@$2" http://<device-ip>/ota/upload
+}
+upload fs .pio/build/light-saber/littlefs.bin
+sleep 15  # wait for the restart
+upload fr .pio/build/light-saber/firmware.bin
 ```
 
 **Expected output:**
@@ -162,10 +156,9 @@ curl http://<device-ip>/api/version
 
 If curl is not available, you can also upload via the web interface:
 
-1. Open `http://<device-ip>` in your browser
-2. Navigate to the firmware update section (if available in your build)
-3. Select the firmware file: `.pio/build/light-saber/firmware.bin`
-4. Click upload and wait for the device to restart
+1. Open `http://<device-ip>/update` in your browser
+2. Choose the OTA mode: firmware, or filesystem for the LittleFS image
+3. Select `firmware.bin` (or `littlefs.bin`) and wait for the device to restart
 
 ### Version Numbering
 
